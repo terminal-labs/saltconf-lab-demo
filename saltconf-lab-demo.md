@@ -41,7 +41,7 @@ beacons:
 
 ```disable_during_state_run: True``` is very important here to avoid loops, since our reactor will replace this file with the correct version (thus modifying it again)
 
-```inotify``` and ```pyinotify``` must be installed to use the ```inotify``` beacon.
+__Note__ ```inotify``` and ```pyinotify``` must be installed to use the ```inotify``` beacon.
 
 Remember to restart the salt master / minion after making configuration changes
 

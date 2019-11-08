@@ -57,7 +57,10 @@ def beacon(config):
     for timestamp, buf in packets:
         if timestamp > now - float(_config['pcap_period']):
             eth = Ethernet(buf)
-            ip = ipaddress.ip_address(bytes(eth.data.src)).compressed
+            try:
+                ip = ipaddress.ip_address(bytes(eth.data.src)).compressed
+            except AttributeError:
+                continue
             if ip not in ip_packet_count.keys():
                 ip_packet_count[ip] = 1
             else:
