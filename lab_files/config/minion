@@ -1,0 +1,11 @@
+grains:
+  salt-cloud:
+    driver: ec2
+    profile: aws-ubuntu
+    provider: aws:ec2
+hash_type: sha256
+id: dynamic-lab100-master
+log_level: debug
+master:
+- localhost
+- 52.53.81.180

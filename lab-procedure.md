@@ -223,7 +223,7 @@ Create a ```_beacons``` directory in /srv/salt and download the file hosted [her
 ```
 mkdir _beacons
 cd _beacons
-wget https://raw.githubusercontent.com/terminal-labs/saltconf-lab-demo/master/_beacons/pcap_watch.py -O pcap_watch.py
+wget https://raw.githubusercontent.com/terminal-labs/saltconf-lab-demo/master/lab_files/salt/_beacons/pcap_watch.py -O pcap_watch.py
 ```
 
 This beacon will monitor a pcap file for packets and will send an event if the packet rate exceeds the limit specified for each ip, respectively. It assumes we have configured packet filtering accordingly.
