@@ -4,7 +4,7 @@ This lab procedure will walk through how to do the following:
 - Using a built in beacon / reactor to restore a modified apache config
 - Using a (pre-made) custom beacon to monitor for high packet rates on port 80, 
 and sending a text message to a sys admin
-- Using same custom beacon to instead provide firewall remediation of the potential DDOS attack
+- Using same custom beacon to provide firewall remediation of the potential DDOS attack
 
 ## Part 1: Built-in inotify beacon
 
@@ -16,14 +16,12 @@ file_roots:
   base:
     - /srv/salt
 ```
-Therefore, this is where salt will look for state files.
+This is where salt will look for states, modules, and/or other files.
 
 Let's make the /srv/salt directory and create a state to install apache.
 
 ```
 mkdir /srv/salt
-```
-```
 cd /srv/salt
 ```
 ```
@@ -49,10 +47,10 @@ curl localhost | grep "It works!"
 ```
 
 Let's also see if we can reach this page from the minions.
-First identify the master's private ip. We can do this by examining the inet listed by ifconfig on eth0
-or by using this fancy bash pipe
+First identify the master's private ip. We can do this by examining the inet listed by ifconfig on eth0. Alternatively, we can use salt's ```network``` module
+
 ```
-ifconfig eth0 | grep inet | awk '{print $2}' | cut -f2 | head -n 1
+salt \*master network.ipaddrs
 ```
 
 Then utilize salt's ```cmd.run``` to curl that ip on all minions:
@@ -60,15 +58,16 @@ Then utilize salt's ```cmd.run``` to curl that ip on all minions:
 salt \* cmd.run "curl <ip-address> | grep 'It works'"
 ```
 
-### Managing apache conf
+### _Managing apache conf_
 
 We'd like to have a source of truth for the apache configuration file (located in /etc/apache2/apache2.conf on ubuntu)
-Let's make a copy of this file in our salt file_roots and include a state to manage this file with salt.
+Let's make a copy of this file in our ```file_roots``` directory and include a state to manage this file with salt.
 
 ```
 mkdir /srv/salt/files
 cp /etc/apache2/apache2.conf /srv/salt/files/apache2.conf
 ```
+
 ```
 # /srv/salt/manage_apache.sls
 
@@ -107,7 +106,7 @@ salt \*master state.highstate
 Suppose this apache2.conf gets modified. We may want to automatically restore the managed configuration.
 This example can make use of salt's built-in inotify beacon. We can configure the beacon to watch for file modifications,
 and if it detects one, fire an event to the salt master's event bus. From there we can write whatever reaction we would like to have.
-More on that in a minute first let's set up the inotify beacon.
+More on that in a minute, but first, let's set up the inotify beacon.
 
 For more info on beacons see the docs [here](https://docs.saltstack.com/en/develop/topics/beacons/)
 
@@ -153,7 +152,7 @@ install_pyinotify:
   pip.installed:
     - name: pyinotify
 ```
-Add them to our existing topfile
+Let's add them to our existing topfile
 ```
 # /srv/salt/top.sls
 base:
@@ -177,7 +176,7 @@ systemctl restart salt-minion
 
 __Try it__ Modify apache.conf and you should be able to see the event on the master event bus using ```salt-run state.event pretty=True``` 
 
-_Configuring the reactor_
+### _Configuring the reactor_
 
 Reactors can be configured via /etc/salt/master or in the /etc/salt/master.d directory. 
 
@@ -211,14 +210,14 @@ Make sure to restart the salt master.
 systemctl restart salt-master
 ```
 
-__Try it__ View the event bus while modifying apache2.conf, the file should be replaced with the one being served by salt://files/apache2.conf faster than you can say thorium salt reactor!
+__Try it__ View the event bus while modifying apache2.conf. The file should be replaced with the one being served by salt://files/apache2.conf faster than you can say thorium salt reactor!
 
 ## Part 2: Custom beacon to monitor traffic and send text message
 
 Salt's event system can be easily extended with custom beacons! For more information on _how_ to write custom beacons see the doc section [here](https://docs.saltstack.com/en/develop/topics/beacons/#writing-beacon-plugins). For the purpose of this lab session, 
 we will use a pre-written custom beacon module.
 
-Create a ```_beacons``` directory in /srv/salt and download the file hosted [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/_beacons/pcap_watch.py)
+Create a ```_beacons``` directory in /srv/salt and download the file hosted [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/_beacons/pcap_watch.py)
 
 ```
 mkdir _beacons
@@ -299,7 +298,7 @@ beacons:
 
 ```
 
-__Note__ that the pcap_file we created must be specified here
+__Note__ The pcap_file from the tshark process must be specified here
 
 Be sure to sync the beacon and restart the minion
 
@@ -308,7 +307,7 @@ salt \*master saltutil.sync_beacons
 systemctl restart salt-minion
 ```
 
-_Twilio text (optional)_
+### _Twilio text (optional)_
 
 We could view the event as done previously, but let's make it more interesting.
 Let's up a reactor to send us a text message via twilio (skip if you don't have a twilio account)
@@ -372,13 +371,13 @@ reactor:
     - /srv/salt/reactors/twilio_text.sls
 ```
 
-When in doubt, remember to sync, and restart master / minion processes
+Remember to sync, and restart master / minion processes
 ```
 salt \* saltutil.sync_all
 systemctl restart salt-master salt-minion
 ```
 
-This again, requires an additional package: the ```twilio``` module
+Make sure to install the additional packages, i.e, the ```twilio``` module
 ```
 # /srv/salt/demo_pkgs.sls
 
@@ -407,7 +406,7 @@ install_apache_bench:
   pkg.installed:
     - name: apache2-utils
 ```
-And modify our top
+And modify our topfile:
 ```
 # /srv/salt/top.sls
 
@@ -418,7 +417,7 @@ base:
 
 ```
 
-Run a highstate:
+Then, run a highstate:
 ```
 salt \* state.apply
 ```
@@ -431,14 +430,12 @@ salt \*minion\* cmd.run "ab -n 5000 http://<ip-goes-here>/
 
 You should now see text messages indicating the infringing ip and rate detected by the pcap_watch beacon!
 
-## Part 3, auto-remediation via firewall
+## Part 3: Auto-remediation via firewall
 
-Instead of just a text message, we may desire auto remediation via firewall.
+Instead of a mere text message, we may desire auto remediation via firewall. Let's write a salt reactor to block the infringing ip automatically with a firewall rule.
 
-Let's block the infringing ip automatically with a firewall rule
-
-Let's use ufw for this
-But after enabling it, make sure to open ports 4505,4506 (for salt) and port 80 (for http)
+Let's use ufw for this.
+Make sure to open ports 4505,4506 (for salt) and port 80 (for http).
 The following state will do this
 
 ```
@@ -508,7 +505,7 @@ Restart the salt master
 systemctl restart salt-master
 ```
 
-Let's test it!
+__Try it!__
 
 Verify both can curl the master apache host
 ```
