@@ -120,7 +120,7 @@ salt \*master state.highstate
 <br><br><br>
 
 
-## Part 2: Monitor apache with salt beacons
+## Part 2: Monitor apache with salt [beacons](https://docs.saltstack.com/en/develop/topics/beacons/)
 With apache running "optimally," we need to be aware of any changes to its
 configuration file. We will use salt's built-in inotify beacon to watch for file
 modifications, and upon detection, send a report to the salt master's event bus.
