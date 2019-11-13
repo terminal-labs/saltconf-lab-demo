@@ -33,12 +33,11 @@ salt \* test.version
 ```
 The response should look similar to the following:
 ```YAML
-root@[redacted]# salt \* test.version
-dynamic-lab###-minion-red:
+dynamic-lab000-minion-red:
     2019.2.2
-dynamic-lab###-minion-blue:
+dynamic-lab000-minion-blue:
     2019.2.2
-dynamic-lab###-master:
+dynamic-lab000-master:
     2019.2.2
 ```
 ***
