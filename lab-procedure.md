@@ -41,7 +41,7 @@ The return will look similar to the one above. If your return looks questionable
 <br><br><br>
 
 
-## Part 1: Built-in inotify beacon
+## Part 1: Install apache with salt
 
 For this part we will use salt to install and configure Apache web server for the demonstration.
 
@@ -70,18 +70,15 @@ $ salt \*master state.apply apache
 $ curl localhost | grep "It works!"
 ```
 
-### _Managing apache conf_
+## Part 2: Manage apache files with salt
 
-We'd like to have a source of truth for the apache configuration file (located in /etc/apache2/apache2.conf on ubuntu)
-Let's make a copy of this file in our ```file_roots``` directory and include a state to manage this file with salt.
-
-```
-mkdir /srv/salt/files
-cp /etc/apache2/apache2.conf /srv/salt/files/apache2.conf
-```
+To manage the (now running) apache server, we will copy its configuration file <br>
+into the salt's `file_roots` with the states used to manage apache.
 
 ```
-# /srv/salt/manage_apache.sls
+$ cp /etc/apache2/apache2.conf /srv/salt/apache/apache2.conf
+$ nano /srv/salt/apache/manage_apache.sls
+# /srv/salt/apache/manage_apache.sls
 
 manage_apache_conf:
   file.managed:
