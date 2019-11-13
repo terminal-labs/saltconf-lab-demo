@@ -33,12 +33,12 @@ salt \* test.version
 ```
 The response should look similar to the following:
 ```YAML
-root@ip-172-31-31-117:/srv# salt \* test.version
-dynamic-lab200-minion-red:
+root@[redacted]# salt \* test.version
+dynamic-lab###-minion-red:
     2019.2.2
-dynamic-lab200-minion-blue:
+dynamic-lab###-minion-blue:
     2019.2.2
-dynamic-lab200-master:
+dynamic-lab###-master:
     2019.2.2
 ```
 ***
