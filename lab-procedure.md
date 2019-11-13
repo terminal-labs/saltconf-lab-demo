@@ -1,16 +1,16 @@
-# Lab Procedure
+# Lab outline
 
-This lab procedure will walk through how to do the following:
-- Using a built in beacon / reactor to restore a modified apache config
-- Using a (pre-made) custom beacon to monitor for high packet rates on port 80, 
-and sending a text message to a sys admin
-- Using same custom beacon to provide firewall remediation of the potential DDOS attack
+This lab will expose students to the following:
+- Using a built in beacon/reactor to restore a modified apache configuration file
+- Installing a (pre-made) custom beacon to monitor for high packet rates over port 80
+  - Leveraging said custom beacon to deliver a notification to system administrator
+  - Then using the custom beacon to provide firewall remediation of a potential DDOS attack
 
-## Part 1: Built-in inotify beacon
 
-For this part we will use Apache web server for demonstration. Let's install and configure the service using salt.
+***
+## Part 0: Getting Setup
 
-In the master config (/etc/salt/master) we see the following:
+In the master configuration file `/etc/salt/master` we will see the following:
 ```
 file_roots:
   base:
@@ -18,12 +18,15 @@ file_roots:
 ```
 This is where salt will look for states, modules, and/or other files.
 
-Let's make the /srv/salt directory and create a state to install apache.
 
-```
-mkdir /srv/salt
-cd /srv/salt
-```
+***
+## Part 1: Built-in inotify beacon
+
+For this part we will use salt to install and configure Apache web server for the demonstration.
+
+1) Let's create a salt state to install apache in the `/srv/salt` directory.
+
+`mkdir -p /srv/salt/apache; nano /srv/salt/apache/init.sls`
 ```
 # /srv/salt/apache.sls
 
@@ -36,26 +39,14 @@ run_apache:
     - name: apache2
 ```
 
-and apply the state to the master
+2) Now apply the state to our salt master to install and run the apache service.
 ```
 salt \*master state.apply apache
 ```
 
-Test ensure the standard apache landing page is being served on port 80
+3) Test to ensure the standard apache landing page is being served on port 80.
 ```
 curl localhost | grep "It works!"
-```
-
-Let's also see if we can reach this page from the minions.
-First identify the master's private ip. We can do this by examining the inet listed by ifconfig on eth0. Alternatively, we can use salt's ```network``` module
-
-```
-salt \*master network.ipaddrs
-```
-
-Then utilize salt's ```cmd.run``` to curl that ip on all minions:
-```
-salt \* cmd.run "curl <ip-address> | grep 'It works'"
 ```
 
 ### _Managing apache conf_
@@ -96,7 +87,7 @@ Run it via
 ```
 salt \*master state.apply
 ```
-or 
+or
 ```
 salt \*master state.highstate
 ```
@@ -174,11 +165,11 @@ Remember to restart the salt master / minion after making configuration changes
 systemctl restart salt-minion
 ```
 
-__Try it__ Modify apache.conf and you should be able to see the event on the master event bus using ```salt-run state.event pretty=True``` 
+__Try it__ Modify apache.conf and you should be able to see the event on the master event bus using ```salt-run state.event pretty=True```
 
 ### _Configuring the reactor_
 
-Reactors can be configured via /etc/salt/master or in the /etc/salt/master.d directory. 
+Reactors can be configured via /etc/salt/master or in the /etc/salt/master.d directory.
 
 Let's put our reactor config in /etc/salt/master.d/reactors.conf:
 ```
@@ -214,7 +205,7 @@ __Try it__ View the event bus while modifying apache2.conf. The file should be r
 
 ## Part 2: Custom beacon to monitor traffic and send text message
 
-Salt's event system can be easily extended with custom beacons! For more information on _how_ to write custom beacons see the doc section [here](https://docs.saltstack.com/en/develop/topics/beacons/#writing-beacon-plugins). For the purpose of this lab session, 
+Salt's event system can be easily extended with custom beacons! For more information on _how_ to write custom beacons see the doc section [here](https://docs.saltstack.com/en/develop/topics/beacons/#writing-beacon-plugins). For the purpose of this lab session,
 we will use a pre-written custom beacon module.
 
 Create a ```_beacons``` directory in /srv/salt and download the file hosted [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/_beacons/pcap_watch.py)
@@ -243,7 +234,7 @@ start_tshark_process:
   cmd.run:
     - name: "tshark -i eth0 -F libpcap -t u -f 'tcp dst port 80' -w '/var/tmp/tshark.pcap'"
     - bg: True
-  
+
 ```
 Also, we need to make sure thsark is installed. Let's add it to the demo_pkgs state
 
@@ -343,7 +334,7 @@ Also put the following phone number info in the master config
 # /etc/salt/master
 
 sys_admin_phone: <insert-your-phone-number-here>
-twilio_from_phone: <insert-twilio_from-phone-number-here> 
+twilio_from_phone: <insert-twilio_from-phone-number-here>
 ```
 
 and we then can create a reactor to send us the pcap_watch event details
