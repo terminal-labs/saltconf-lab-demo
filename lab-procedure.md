@@ -125,8 +125,6 @@ With apache running "optimally," we need to be aware of any changes to its
 configuration file. We will use salt's built-in inotify beacon to watch for file
 modifications, and upon detection, send a report to the salt master's event bus.
 
-For more info on beacons in general, see the [docs](https://docs.saltstack.com/en/develop/topics/beacons/)
-
 1) We can add the beacon to the minion's configuration by adding files to the
 `/etc/salt/minion.d` directory.
 ```YAML
