@@ -191,8 +191,9 @@ intentionally modified later in the lab.
 $ systemctl restart salt-minion
 ```
 
+***
 __Try it__ Modify apache.conf and you should be able to see the event on the master event bus using ```salt-run state.event pretty=True```
-
+***
 ### _Configuring the reactor_
 
 Reactors can be configured via /etc/salt/master or in the /etc/salt/master.d directory.
