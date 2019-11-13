@@ -203,7 +203,7 @@ $ salt-run state.event pretty=True
 ```
 
 2) Now lets append text to the apache configuration file. As a result the event
-bus in the other terminal should print out a report from the beacon.
+bus will print out a report from the beacon in response.
 ```
 $ echo "hello world" >> /etc/apache2/apache2.conf
 ```
@@ -212,23 +212,9 @@ $ echo "hello world" >> /etc/apache2/apache2.conf
 
 ***
 ## Part 3: Act on beacon reports with salt [reactors](https://docs.saltstack.com/en/latest/topics/reactor/)
-
 Reactors can automatically run salt states without the user's intervention.
 
-Let's put our reactor config in /etc/salt/master.d/reactors.conf
-```YAML
-$ nano /etc/salt/master.d/reactors.conf
-# /etc/salt/master.d/reactors.conf
-reactor:
-  - salt/beacon/*/inotify//etc/apache2/apache2.conf
-    - /srv/salt/reactors/call_manage_apache.sls
-```
-
-Here we list the event tags to add a reactor for with its sublist being the set of orchestration files to be run when the event occurs. A glob ('') is being used for the minion_id which we will be able to retrieve from the event data in the orchestration
-state as seen in the following.
-
-We need to create the file referenced in the above reactor
-
+1)This orchestration will instruct the minion to apply the manage_apache state we wrote earlier to the tgt specified by the event data's id key.
 ```YAML
 $ nano /srv/salt/reactors/call_manage_apache.sls
 # /srv/salt/reactors/call_manage_apache.sls
@@ -239,29 +225,32 @@ call_manage_apache:
       - manage_apache_conf
 ```
 
-This orchestration will instruct the minion to apply the manage_apache state we wrote earlier to the tgt specified by the event data's id key.
+2) Let's put our reactor settings in `/etc/salt/master.d` directory.Here we list the event tags to add a reactor for with its sublist being the set of orchestration files to be run when the event occurs. A glob ('') is being used for the minion_id which we will be able to retrieve from the event data in the orchestration
+state as seen in the following.
+```YAML
+$ nano /etc/salt/master.d/reactors.conf
+# /etc/salt/master.d/reactors.conf
+reactor:
+  - salt/beacon/*/inotify//etc/apache2/apache2.conf
+    - /srv/salt/reactors/call_manage_apache.sls
+```
 
-Make sure to restart the salt master.
+3) Make sure to restart the salt master.
 ```
 systemctl restart salt-master
 ```
 
-__Try it__ View the event bus while modifying apache2.conf. The file should be replaced with the one being served by salt://files/apache2.conf faster than you can say thorium salt reactor!
+### Part 3.1: React to the reactor reacting...
+
+1) View the event bus while modifying apache2.conf. The file should be replaced with the one being served by salt://files/apache2.conf faster than you can say thorium salt reactor!
+```
+$ echo "hello world" >> /etc/apache2/apache2.conf
+```
+<br><br><br>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-## Part 2: Custom beacon to monitor traffic and send text message
+***
+## Part 4: Custom beacon to monitor traffic and send text message
 
 Salt's event system can be easily extended with custom beacons! For more information on _how_ to write custom beacons see the doc section [here](https://docs.saltstack.com/en/develop/topics/beacons/#writing-beacon-plugins). For the purpose of this lab session,
 we will use a pre-written custom beacon module.
