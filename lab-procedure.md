@@ -47,9 +47,9 @@ For this part we will use salt to install and configure Apache web server for th
 
 1) Let's create a salt state to install apache in the `/srv/salt` directory.
 
-`mkdir -p /srv/salt/apache; nano /srv/salt/apache/init.sls`
 ```
-# /srv/salt/apache.sls
+$ mkdir -p /srv/salt/apache; nano /srv/salt/apache/init.sls
+# /srv/salt/apache/init.sls
 
 install_apache:
   pkg.installed:
@@ -62,12 +62,12 @@ run_apache:
 
 2) Now apply the state to our salt master to install and run the apache service.
 ```
-salt \*master state.apply apache
+$ salt \*master state.apply apache
 ```
 
 3) Test to ensure the standard apache landing page is being served on port 80.
 ```
-curl localhost | grep "It works!"
+$ curl localhost | grep "It works!"
 ```
 
 ### _Managing apache conf_
