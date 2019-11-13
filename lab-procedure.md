@@ -100,7 +100,7 @@ $ salt \*master state.sls manage_apache test=True
 $ salt \*master state.apply manage_apache
 ```
 
-We can apply these states in bulk with a highstate by creating a `top.sls` file. <br>
+We can apply these states in one command with a highstate by creating a `top.sls` file. <br>
 When we run a highstate it will read the top file and apply the states listed.
 
 ```YAML
