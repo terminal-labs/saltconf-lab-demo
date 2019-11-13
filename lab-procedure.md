@@ -13,7 +13,7 @@ This lab will expose students to the following:
 If you are using windows then use these [directions](). <br>
 `$ ssh -i [path to provided key] ubuntu@[your master instance IP address]`
 
-2) Ensure your salt master is running and has no errors.
+2) Ensure your salt master is running and has no errors. <br>
 `$ systemctl status salt-master`
 
 3) Browse the master configuration file `/etc/salt/master`. <br>
