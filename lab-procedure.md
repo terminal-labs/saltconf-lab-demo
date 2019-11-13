@@ -24,7 +24,7 @@ file_roots:
   base:
     - /srv/salt
 ```
-NOTE: This is where salt will look for states, modules, and/or other files.
+The listed directories under `file_roots` is where salt will look for states, modules, and/or other files.
 
 
 ***
