@@ -10,6 +10,10 @@ This lab will expose students to the following:
 ***
 ## Part 0: Getting Setup
 Login to your respective [environment]().
+```
+ssh -i [path to provided key] ubuntu@[your master instance IP address]
+```
+
 Ensure your salt master is running.
 ```
 systemctl status salt-master
