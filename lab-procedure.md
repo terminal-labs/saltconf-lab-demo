@@ -8,18 +8,18 @@ This lab will expose students to the following:
 <br>
 
 ## Part 0: Check your salt cluster
-1) Login to your assigned [environment](). <br>
-If you are using windows then use these [directions](). <br>
+1) Login to your assigned [environment]().
+If you are using windows then use these [directions]().
 ```
 $ ssh -i [path to provided key] ubuntu@[your master instance IP address]
 ```
 
-2) Ensure your salt master is running and has no errors. <br>
+2) Ensure your salt master is running and has no errors.
 ```
 $ systemctl status salt-master
 ```
 
-3) Browse the master configuration file `/etc/salt/master` <br>
+3) Browse the master configuration file `/etc/salt/master`
 The listed directories under `file_roots` is where salt will look
 for states, modules, and managed files.
 ```YAML
@@ -29,8 +29,8 @@ file_roots:
     - /srv/salt
 ```
 
-4) Check what minion keys are accepted by your master, `salt-key -L`, <br>
-then check that your master can connect to all listed minions.  <br>
+4) Check what minion keys are accepted by your master, `salt-key -L`,
+then check that your master can connect to all listed minions.
 ```YAML
 $ salt \* test.version
 dynamic-lab000-master:
@@ -41,11 +41,10 @@ dynamic-lab000-minion-blue:
     2019.2.2
 ```
 The return will look similar to the one above. If your return looks questionable, please **request assistance**.
-<br><br>
+<br><br><br>
 
 
 ## Part 1: Install apache with salt
-
 For this part we will use salt to install and start Apache web server for the demonstration.
 
 1) Create a salt state to install apache in the `/srv/salt` directory.
@@ -73,9 +72,9 @@ $ salt \*master state.apply apache
 $ curl localhost | grep "It works!"
 ```
 
-### Part 1.1: Manage apache with salt
 
-To manage the (now running) apache server, we will copy its configuration file <br>
+### Part 1.1: Manage apache with salt
+To manage the (now running) apache server, we will copy its configuration file
 into the salt's `file_roots` with the states used to manage apache.
 
 1) Copy over apache's configuration file next to the salt states for apache.
@@ -118,21 +117,20 @@ salt \*master state.apply
 # or
 salt \*master state.highstate
 ```
-<br><br>
+<br><br><br>
 
 
-
-## Part 2: Manage apache automatically with salt beacon
-
+## Part 2: Auto manage apache with salt beacon
 Suppose this apache2.conf gets modified. We may want to automatically restore the managed configuration.
 This example can make use of salt's built-in inotify beacon. We can configure the beacon to watch for file modifications,
 and if it detects one, fire an event to the salt master's event bus. From there we can write whatever reaction we would like to have.
 More on that in a minute, but first, let's set up the inotify beacon.
 
-For more info on beacons see the docs [here](https://docs.saltstack.com/en/develop/topics/beacons/)
+For more info on beacons see the [docs](https://docs.saltstack.com/en/develop/topics/beacons/)
 
 In the minion config we can include the following:
-```
+```YAML
+$ nano /etc/salt/minion.d/beacons.conf
 # /etc/salt/minion.d/beacons.conf
 
 beacons:
@@ -142,28 +140,29 @@ beacons:
           mask:
             - modify
     - disable_during_state_run: True
-
 ```
 
-```disable_during_state_run: True``` is very important here to avoid loops, since our reactor will replace this file with the correct version (thus modifying it again)
+`disable_during_state_run: True` is very important here to avoid loops, since our reactor will replace this file with the correct version (thus modifying it again)
 
-```inotify``` and ```pyinotify``` must be installed to use the ```inotify``` beacon.
+`inotify` and `pyinotify` must be installed to use the inotify beacon.
 
 
 We could install these with apt, but let's write a couple states instead and add to our topfile.
 
 We will need pip:
-```
-# /srv/salt/python_pip.sls
+```YAML
+$ nano /srv/salt/pip/init.sls
+# /srv/salt/pip/init.sls
 
-install_python_pip:
+install_pip:
   pkg.installed:
     - name: python-pip
 ```
 
 And other packages:
-```
-# /srv/salt/demo_packages.sls
+```YAML
+$ nano /srv/salt/inotify/init.sls
+# /srv/salt/inotify/init.sls
 
 install_inotify:
   pkg.installed:
@@ -174,7 +173,8 @@ install_pyinotify:
     - name: pyinotify
 ```
 Let's add them to our existing topfile
-```
+```YAML
+$ nano /srv/salt/top.sls
 # /srv/salt/top.sls
 base:
   '*master':
@@ -189,7 +189,7 @@ and run it:
 salt \*master state.highstate
 ```
 
-Remember to restart the salt master / minion after making configuration changes
+Remember to restart the salt master/minion after making configuration changes
 
 ```
 systemctl restart salt-minion
@@ -202,26 +202,27 @@ __Try it__ Modify apache.conf and you should be able to see the event on the mas
 Reactors can be configured via /etc/salt/master or in the /etc/salt/master.d directory.
 
 Let's put our reactor config in /etc/salt/master.d/reactors.conf:
-```
+```YAML
+$ nano /etc/salt/master.d/reactors.conf
 # /etc/salt/master.d/reactors.conf
 reactor:
   - salt/beacon/*/inotify//etc/apache2/apache2.conf
     - /srv/salt/reactors/call_manage_apache.sls
 ```
 
-Here we list the event tags to add a reactor for with its sublist being the set of orchestration files to be run when the event occurs. A glob ('*') is being used for the minion_id which we will be able to retrieve from the event data in the orchestration
+Here we list the event tags to add a reactor for with its sublist being the set of orchestration files to be run when the event occurs. A glob ('') is being used for the minion_id which we will be able to retrieve from the event data in the orchestration
 state as seen in the following.
 
 We need to create the file referenced in the above reactor
 
-```
+```YAML
+$ nano /srv/salt/reactors/call_manage_apache.sls
 # /srv/salt/reactors/call_manage_apache.sls
 call_manage_apache:
   local.state.apply:
     - tgt: {{ data['id'] }}
     - arg:
       - manage_apache_conf
-
 ```
 
 This orchestration will instruct the minion to apply the manage_apache state we wrote earlier to the tgt specified by the event data's id key.
