@@ -113,9 +113,9 @@ base:
 
 5) Apply the top file with either highstate command.
 ```YAML
-salt \*master state.apply
+$ salt \*master state.apply
 # or
-salt \*master state.highstate
+$ salt \*master state.highstate
 ```
 <br><br><br>
 
@@ -125,8 +125,51 @@ With apache running "optimally," we need to be aware of any changes to its
 configuration file. We will use salt's built-in inotify beacon to watch for file
 modifications, and upon detection, send a report to the salt master's event bus.
 
-1) We can add the beacon to the minion's configuration by adding files to the
-`/etc/salt/minion.d` directory.
+1) Lets write a salt state to install the package manager "pip," for installing
+one of the beacon dependencies.
+```YAML
+$ nano /srv/salt/pip/init.sls
+# /srv/salt/pip/init.sls
+
+install_pip:
+  pkg.installed:
+    - name: python-pip
+```
+
+2) Now `inotify` and `pyinotify` dependencies must be installed for the inotify beacon.
+```YAML
+$ nano /srv/salt/inotify/init.sls
+# /srv/salt/inotify/init.sls
+
+install_inotify:
+  pkg.installed:
+    - name: inotify-tools
+
+install_pyinotify:
+  pip.installed:
+    - name: pyinotify
+```
+
+3) Update our existing top file
+```YAML
+$ nano /srv/salt/top.sls
+# /srv/salt/top.sls
+base:
+  '*master':
+    - pip
+    - inotify
+    - apache
+    - manage_apache
+```
+
+4) Check to ensure the new states are valid and run another highstate.
+```
+$ salt \*master state.apply pip inotify test=True
+$ salt \*master state.apply
+```
+
+5) We can now add the beacon to the minion's configuration by adding files to
+the `/etc/salt/minion.d` directory.
 ```YAML
 $ nano /etc/salt/minion.d/beacons.conf
 # /etc/salt/minion.d/beacons.conf
@@ -140,57 +183,12 @@ beacons:
     - disable_during_state_run: True
 ```
 
-`disable_during_state_run: True` is very important here to avoid loops, since our reactor will replace this file with the correct version (thus modifying it again)
+- `disable_during_state_run: True` is necessary to avoid loops when the file is
+intentionally modified later in the lab.
 
-`inotify` and `pyinotify` must be installed to use the inotify beacon.
-
-
-We could install these with apt, but let's write a couple states instead and add to our topfile.
-
-We will need pip:
-```YAML
-$ nano /srv/salt/pip/init.sls
-# /srv/salt/pip/init.sls
-
-install_pip:
-  pkg.installed:
-    - name: python-pip
+6) Restart the minion to apply the new minion settings.
 ```
-
-And other packages:
-```YAML
-$ nano /srv/salt/inotify/init.sls
-# /srv/salt/inotify/init.sls
-
-install_inotify:
-  pkg.installed:
-    - name: inotify-tools
-
-install_pyinotify:
-  pip.installed:
-    - name: pyinotify
-```
-Let's add them to our existing topfile
-```YAML
-$ nano /srv/salt/top.sls
-# /srv/salt/top.sls
-base:
-  '*master':
-    - python_pip
-    - demo_pkgs
-    - apache
-    - manage_apache
-```
-
-and run it:
-```
-salt \*master state.highstate
-```
-
-Remember to restart the salt master/minion after making configuration changes
-
-```
-systemctl restart salt-minion
+$ systemctl restart salt-minion
 ```
 
 __Try it__ Modify apache.conf and you should be able to see the event on the master event bus using ```salt-run state.event pretty=True```
