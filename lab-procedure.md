@@ -18,13 +18,15 @@ ssh -i [path to provided key] ubuntu@[your master instance IP address]
 ```
 systemctl status salt-master
 ```
-3) Browse the master configuration file `/etc/salt/master` you should see the following:
+
+3) Browse the master configuration file `/etc/salt/master`.
+The listed directories under `file_roots` is where salt will look
+for states, modules, and/or other files.
 ```
 file_roots:
   base:
     - /srv/salt
 ```
-The listed directories under `file_roots` is where salt will look for states, modules, and/or other files.
 
 4) Check what minion keys are accepted by your master, `salt-key -L`,
 then check that your master can conenct to all listed minions.
