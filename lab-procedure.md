@@ -9,7 +9,7 @@ This lab will expose students to the following:
 
 ***
 ## Part 0: Check your cluster
-1) Login to your assigned [environment]().
+1) Login to your assigned [environment](). <br>
 If you are using windows then use these [directions]().
 ```
 $ ssh -i [path to provided key] ubuntu@[your master instance IP address]
@@ -20,7 +20,7 @@ $ ssh -i [path to provided key] ubuntu@[your master instance IP address]
 $ systemctl status salt-master
 ```
 
-3) Browse the master configuration file `/etc/salt/master`.
+3) Browse the master configuration file `/etc/salt/master`. <br>
 The listed directories under `file_roots` is where salt will look
 for states, modules, and/or other files.
 ```
@@ -30,12 +30,12 @@ file_roots:
     - /srv/salt
 ```
 
-4) Check what minion keys are accepted by your master, `$ salt-key -L`,
+4) Check what minion keys are accepted by your master, `$ salt-key -L`, <br>
 then check that your master can conenct to all listed minions.
 ```
 $ salt \* test.version
 ```
-The return will look similar to the below code snippet.
+The return will look similar to the below code snippet. <br>
 If your return looks questionable, please **request assistance**.
 ```YAML
 dynamic-lab000-minion-red:
