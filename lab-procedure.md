@@ -36,7 +36,7 @@ dynamic-lab000-minion-red:
 dynamic-lab000-minion-blue:
     2019.2.2
 ```
-The return will look similar to the code snippet. If your return looks questionable, please **request assistance**.
+The return will look similar to the one above. If your return looks questionable, please **request assistance**.
 <br><br>
 
 ## Part 1: Built-in inotify beacon
