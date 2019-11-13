@@ -74,7 +74,7 @@ $ salt \*master state.apply apache
 $ curl localhost | grep "It works!"
 ```
 
-## Part 1.1: Manage apache with salt
+### Part 1.1: Manage apache with salt
 
 To manage the (now running) apache server, we will copy its configuration file <br>
 into the salt's `file_roots` with the states used to manage apache.
