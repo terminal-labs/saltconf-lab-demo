@@ -30,11 +30,11 @@ file_roots:
 then check that your master can connect to all listed minions.  <br>
 ```YAML
 $ salt \* test.version
+dynamic-lab000-master:
+    2019.2.2
 dynamic-lab000-minion-red:
     2019.2.2
 dynamic-lab000-minion-blue:
-    2019.2.2
-dynamic-lab000-master:
     2019.2.2
 ```
 The return will look similar to the code snippet. <br>
