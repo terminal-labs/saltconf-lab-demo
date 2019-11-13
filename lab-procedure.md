@@ -43,8 +43,8 @@ dynamic-lab000-minion-blue:
 The return will look similar to the one above. If your return looks questionable, please **request assistance**.
 <br><br><br>
 
-
-## Part 1: Install apache with salt
+***
+## Part 1: Install apache with salt [states](https://docs.saltstack.com/en/latest/topics/tutorials/starting_states.html)
 For this part we will use salt to install and start Apache web server for the demonstration.
 
 1) Create a salt state to install apache in the `/srv/salt` directory.
@@ -119,7 +119,7 @@ $ salt \*master state.highstate
 ```
 <br><br><br>
 
-
+***
 ## Part 2: Monitor apache with salt [beacons](https://docs.saltstack.com/en/develop/topics/beacons/)
 With apache running "optimally," we need to be aware of any changes to its
 configuration file. We will use salt's built-in inotify beacon to watch for file
@@ -185,19 +185,37 @@ beacons:
     - disable_during_state_run: True
 ```
 
-6) Restart the minion to apply the new minion settings.
+6) Restart the minion to apply the new minion settings, and check they were
+successful.
 ```
 $ systemctl restart salt-minion
+$ systemctl status salt-minion
 ```
 
-***
-__Try it__ Modify apache.conf and you should be able to see the event on the master event bus using ```salt-run state.event pretty=True```
-***
-### _Configuring the reactor_
+### Part 2.1: Observe the beacon observing...
+At this point you have installed a beacon and given it a task! Lets see it in action.
 
-Reactors can be configured via /etc/salt/master or in the /etc/salt/master.d directory.
+1) Open a second terminal to observe salt's event bus. This command is useful
+for debugging since it prints to terminal any events published to the master's
+event bus.
+```
+$ salt-run state.event pretty=True
+```
 
-Let's put our reactor config in /etc/salt/master.d/reactors.conf:
+2) Now lets append text to the apache configuration file. As a result the event
+bus in the other terminal should print out a report from the beacon.
+```
+$ echo "hello world" >> /etc/apache2/apache2.conf
+```
+<br><br><br>
+
+
+***
+## Part 3: Act on beacon reports with salt [reactors](https://docs.saltstack.com/en/latest/topics/reactor/)
+
+Reactors can automatically run salt states without the user's intervention.
+
+Let's put our reactor config in /etc/salt/master.d/reactors.conf
 ```YAML
 $ nano /etc/salt/master.d/reactors.conf
 # /etc/salt/master.d/reactors.conf
@@ -229,6 +247,19 @@ systemctl restart salt-master
 ```
 
 __Try it__ View the event bus while modifying apache2.conf. The file should be replaced with the one being served by salt://files/apache2.conf faster than you can say thorium salt reactor!
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Part 2: Custom beacon to monitor traffic and send text message
 
