@@ -126,7 +126,7 @@ configuration file. We will use salt's built-in inotify beacon to watch for file
 modifications, and upon detection, send a report to the salt master's event bus.
 
 1) Lets write a salt state to install the package manager "pip," for installing
-one of the beacon dependencies.
+a beacon library dependency.
 ```YAML
 $ nano /srv/salt/pip/init.sls
 # /srv/salt/pip/init.sls
