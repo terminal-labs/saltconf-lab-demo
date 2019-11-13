@@ -7,6 +7,7 @@ This lab will expose students to the following:
   - Then using the custom beacon to provide firewall remediation of a potential DDOS attack
 <br>
 
+
 ## Part 0: Check your cluster
 1) Login to your assigned [environment](). <br>
 If you are using windows then use these [directions](). <br>
@@ -38,6 +39,7 @@ dynamic-lab000-minion-blue:
 ```
 The return will look similar to the one above. If your return looks questionable, please **request assistance**.
 <br><br>
+
 
 ## Part 1: Built-in inotify beacon
 
