@@ -19,7 +19,7 @@ $ ssh -i [path to provided key] ubuntu@[your master instance IP address]
 $ systemctl status salt-master
 ```
 
-3) Browse the master configuration file `/etc/salt/master`
+3) Browse the master configuration file `/etc/salt/master`.
 The listed directories under `file_roots` is where salt will look
 for states, modules, and managed files.
 ```YAML
@@ -29,7 +29,7 @@ file_roots:
     - /srv/salt
 ```
 
-4) Check what minion keys are accepted by your master, `salt-key -L`,
+4) Check what minion keys are accepted by your master, `$ salt-key -L`,
 then check that your master can connect to all listed minions.
 ```YAML
 $ salt \* test.version
@@ -99,7 +99,7 @@ $ salt \*master state.sls manage_apache test=True
 $ salt \*master state.apply manage_apache
 ```
 
-4) We can apply these states in one command with a highstate by creating a `top.sls` file. <br>
+4) We can apply these states in one command with a highstate by creating a `top.sls` file.
 When we run a highstate it will read the top file and apply the states listed.
 ```YAML
 $ nano /srv/salt/top.sls
@@ -120,15 +120,15 @@ salt \*master state.highstate
 <br><br><br>
 
 
-## Part 2: Auto manage apache with salt beacon
-Suppose this apache2.conf gets modified. We may want to automatically restore the managed configuration.
-This example can make use of salt's built-in inotify beacon. We can configure the beacon to watch for file modifications,
-and if it detects one, fire an event to the salt master's event bus. From there we can write whatever reaction we would like to have.
-More on that in a minute, but first, let's set up the inotify beacon.
+## Part 2: Monitor apache with salt beacons
+With apache running "optimally," we need to be aware of any changes to its
+configuration file. We will use salt's built-in inotify beacon to watch for file
+modifications, and upon detection, send a report to the salt master's event bus.
 
-For more info on beacons see the [docs](https://docs.saltstack.com/en/develop/topics/beacons/)
+    For more info on beacons in general, see the [docs](https://docs.saltstack.com/en/develop/topics/beacons/)
 
-In the minion config we can include the following:
+1) We can add the beacon to the minion's configuration by adding files to the
+`/etc/salt/minion.d` directory.
 ```YAML
 $ nano /etc/salt/minion.d/beacons.conf
 # /etc/salt/minion.d/beacons.conf
