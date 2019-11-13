@@ -5,10 +5,9 @@ This lab will expose students to the following:
 - Installing a (pre-made) custom beacon to monitor for high packet rates over port 80
   - Leveraging said custom beacon to deliver a notification to system administrator
   - Then using the custom beacon to provide firewall remediation of a potential DDOS attack
-<br>
 
 
-## Part 0: Check your cluster
+## Part 0: Check your salt cluster
 1) Login to your assigned [environment](). <br>
 If you are using windows then use these [directions](). <br>
 ```
