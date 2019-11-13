@@ -42,7 +42,7 @@ dynamic-lab000-minion-blue:
     2019.2.2
 ```
 The return will look similar to the one above. If your return looks questionable, please **request assistance**.
-<br><br><br>
+<br><br>
 
 
 ## Part 1: Install apache with salt
@@ -74,7 +74,7 @@ $ salt \*master state.apply apache
 $ curl localhost | grep "It works!"
 ```
 
-## Part 2: Manage apache with salt
+## Part 1.1: Manage apache with salt
 
 To manage the (now running) apache server, we will copy its configuration file <br>
 into the salt's `file_roots` with the states used to manage apache.
@@ -119,11 +119,11 @@ salt \*master state.apply
 # or
 salt \*master state.highstate
 ```
-<br><br><br>
+<br><br>
 
 
 
-## Part 3 Manage apache automatically with salt beacon
+## Part 2: Manage apache automatically with salt beacon
 
 Suppose this apache2.conf gets modified. We may want to automatically restore the managed configuration.
 This example can make use of salt's built-in inotify beacon. We can configure the beacon to watch for file modifications,
