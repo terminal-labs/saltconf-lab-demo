@@ -1,16 +1,16 @@
-# Lab Procedure
+# Lab outline
 
-This lab procedure will walk through how to do the following:
-- Using a built in beacon / reactor to restore a modified apache config
-- Using a (pre-made) custom beacon to monitor for high packet rates on port 80, 
-and sending a text message to a sys admin
-- Using same custom beacon to provide firewall remediation of the potential DDOS attack
-
+This lab will expose you to the following:
+- Using a built in beacon/reactor to restore a modified apache configuration file
+- Installing a (pre-made) custom beacon to monitor for high packet rates over port 80
+  - Leveraging said custom beacon to deliver a notification to system administrator
+  - Then using the custom beacon to provide firewall remediation of a potential DDOS attack
+***
 ## Part 1: Built-in inotify beacon
 
-For this part we will use Apache web server for demonstration. Let's install and configure the service using salt.
+For this part we will use salt to install and configure Apache web server for the demonstration.
 
-In the master config (/etc/salt/master) we see the following:
+In the master configuration file `/etc/salt/master` we will see the following:
 ```
 file_roots:
   base:
@@ -18,12 +18,9 @@ file_roots:
 ```
 This is where salt will look for states, modules, and/or other files.
 
-Let's make the /srv/salt directory and create a state to install apache.
+1) Let's create a salt state to install apache in the `/srv/salt` directory.
 
-```
-mkdir /srv/salt
-cd /srv/salt
-```
+`mkdir -p /srv/salt/apache; nano /srv/salt/apache/init.sls`
 ```
 # /srv/salt/apache.sls
 
@@ -36,12 +33,12 @@ run_apache:
     - name: apache2
 ```
 
-and apply the state to the master
+2) Now apply the salt state to our salt master to install and run the apache service.
 ```
 salt \*master state.apply apache
 ```
 
-Test ensure the standard apache landing page is being served on port 80
+3) Test to ensure the standard apache landing page is being served on port 80
 ```
 curl localhost | grep "It works!"
 ```
