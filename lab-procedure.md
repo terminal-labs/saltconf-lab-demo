@@ -11,9 +11,7 @@ This lab will expose students to the following:
 ## Part 0: Check your cluster
 1) Login to your assigned [environment](). <br>
 If you are using windows then use these [directions]().
-```
-$ ssh -i [path to provided key] ubuntu@[your master instance IP address]
-```
+`$ ssh -i [path to provided key] ubuntu@[your master instance IP address]`
 
 2) Ensure your salt master is running and has no errors.
 ```
