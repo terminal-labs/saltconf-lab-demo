@@ -11,27 +11,28 @@ This lab will expose students to the following:
 ## Part 0: Getting Setup
 1) Login to your respective [environment]().
 ```
-ssh -i [path to provided key] ubuntu@[your master instance IP address]
+$ ssh -i [path to provided key] ubuntu@[your master instance IP address]
 ```
 
 2) Ensure your salt master is running and has no errors.
 ```
-systemctl status salt-master
+$ systemctl status salt-master
 ```
 
 3) Browse the master configuration file `/etc/salt/master`.
 The listed directories under `file_roots` is where salt will look
 for states, modules, and/or other files.
 ```
+$ cat /etc/salt/master
 file_roots:
   base:
     - /srv/salt
 ```
 
-4) Check what minion keys are accepted by your master, `salt-key -L`,
+4) Check what minion keys are accepted by your master, `$ salt-key -L`,
 then check that your master can conenct to all listed minions.
 ```
-salt \* test.version
+$ salt \* test.version
 ```
 The return will look similar to the below code snippet.
 If your return looks questionable, please **request assistance**.
