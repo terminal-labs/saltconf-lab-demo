@@ -83,6 +83,7 @@ into the salt's `file_roots` with the states used to manage apache.
 ```
 $ cp /etc/apache2/apache2.conf /srv/salt/apache/apache2.conf
 ```
+
 2) Create a new state for applying the newly copied configuration file to the apache server.
 ```YAML
 $ nano /srv/salt/apache/manage_apache.sls
@@ -102,7 +103,6 @@ $ salt \*master state.apply manage_apache
 
 4) We can apply these states in one command with a highstate by creating a `top.sls` file. <br>
 When we run a highstate it will read the top file and apply the states listed.
-
 ```YAML
 $ nano /srv/salt/top.sls
 # /srv/salt/top.sls
@@ -112,12 +112,16 @@ base:
     - apache
     - manage_apache
 ```
-Apply the top file with either highstate command.
+
+5) Apply the top file with either highstate command.
 ```YAML
 salt \*master state.apply
 # or
 salt \*master state.highstate
 ```
+<br><br><br>
+
+
 
 ## Part 3 Manage apache automatically with salt beacon
 
