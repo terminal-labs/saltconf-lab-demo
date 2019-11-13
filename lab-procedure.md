@@ -10,8 +10,7 @@ This lab will expose students to the following:
 ***
 ## Part 0: Check your cluster
 1) Login to your assigned [environment](). <br>
-If you are using windows then use these [directions]().
-
+If you are using windows then use these [directions](). <br>
 `$ ssh -i [path to provided key] ubuntu@[your master instance IP address]`
 
 2) Ensure your salt master is running and has no errors.
@@ -19,8 +18,7 @@ If you are using windows then use these [directions]().
 $ systemctl status salt-master
 ```
 
-3) Browse the master configuration file `/etc/salt/master`.
-
+3) Browse the master configuration file `/etc/salt/master`. <br>
 The listed directories under `file_roots` is where salt will look
 for states, modules, and/or other files.
 ```
