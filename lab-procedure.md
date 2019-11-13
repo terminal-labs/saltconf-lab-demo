@@ -26,6 +26,11 @@ file_roots:
 ```
 The listed directories under `file_roots` is where salt will look for states, modules, and/or other files.
 
+Check what minion keys are accepted by your master, `salt-key -L`,
+then check that your master can conenct to all listed minions.
+```
+salt \* test.version
+```
 
 ***
 ## Part 1: Built-in inotify beacon
