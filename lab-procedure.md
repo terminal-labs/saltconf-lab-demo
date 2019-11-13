@@ -19,7 +19,7 @@ If you are using windows then use these [directions](). <br>
 3) Browse the master configuration file `/etc/salt/master`. <br>
 The listed directories under `file_roots` is where salt will look
 for states, modules, and/or other files.
-```
+```YAML
 $ cat /etc/salt/master
 file_roots:
   base:
@@ -43,11 +43,11 @@ The return will look similar to the one above. If your return looks questionable
 
 ## Part 1: Install apache with salt
 
-For this part we will use salt to install and configure Apache web server for the demonstration.
+For this part we will use salt to install and start Apache web server for the demonstration.
 
-1) Let's create a salt state to install apache in the `/srv/salt` directory.
+1) Create a salt state to install apache in the `/srv/salt` directory.
 
-```
+```YAML
 $ mkdir -p /srv/salt/apache; nano /srv/salt/apache/init.sls
 # /srv/salt/apache/init.sls
 
@@ -75,8 +75,12 @@ $ curl localhost | grep "It works!"
 To manage the (now running) apache server, we will copy its configuration file <br>
 into the salt's `file_roots` with the states used to manage apache.
 
+1) Copy over apache's configuration file next to the salt states for apache.
 ```
 $ cp /etc/apache2/apache2.conf /srv/salt/apache/apache2.conf
+```
+2) Create a new state for applying the version controlled config to the running apache server.
+```YAML
 $ nano /srv/salt/apache/manage_apache.sls
 # /srv/salt/apache/manage_apache.sls
 
