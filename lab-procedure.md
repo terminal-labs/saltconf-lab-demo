@@ -9,16 +9,16 @@ This lab will expose students to the following:
 
 ***
 ## Part 0: Getting Setup
-Login to your respective [environment]().
+1) Login to your respective [environment]().
 ```
 ssh -i [path to provided key] ubuntu@[your master instance IP address]
 ```
 
-Ensure your salt master is running and has no errors.
+2) Ensure your salt master is running and has no errors.
 ```
 systemctl status salt-master
 ```
-Browse the master configuration file `/etc/salt/master` you should see the following:
+3) Browse the master configuration file `/etc/salt/master` you should see the following:
 ```
 file_roots:
   base:
@@ -26,12 +26,21 @@ file_roots:
 ```
 The listed directories under `file_roots` is where salt will look for states, modules, and/or other files.
 
-Check what minion keys are accepted by your master, `salt-key -L`,
+4) Check what minion keys are accepted by your master, `salt-key -L`,
 then check that your master can conenct to all listed minions.
 ```
 salt \* test.version
 ```
-
+The response should look similar to the following:
+```YAML
+root@ip-172-31-31-117:/srv# salt \* test.version
+dynamic-lab200-minion-red:
+    2019.2.2
+dynamic-lab200-minion-blue:
+    2019.2.2
+dynamic-lab200-master:
+    2019.2.2
+```
 ***
 ## Part 1: Built-in inotify beacon
 
