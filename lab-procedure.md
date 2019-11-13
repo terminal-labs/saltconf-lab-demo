@@ -7,7 +7,9 @@ This lab will expose students to the following:
   - Then using the custom beacon to provide firewall remediation of a potential DDOS attack
 
 
+
 ## Part 0: Check your cluster
+***
 1) Login to your assigned [environment](). <br>
 If you are using windows then use these [directions](). <br>
 `$ ssh -i [path to provided key] ubuntu@[your master instance IP address]`
