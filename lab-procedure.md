@@ -9,7 +9,7 @@ This lab will expose students to the following:
 
 ***
 ## Part 0: Getting Setup
-Login to your respective (environment)[].
+Login to your respective [environment]().
 Ensure your salt master is running.
 ```
 systemctl status salt-master
