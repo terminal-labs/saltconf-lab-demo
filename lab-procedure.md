@@ -11,12 +11,16 @@ This lab will expose students to the following:
 ## Part 0: Check your cluster
 1) Login to your assigned [environment](). <br>
 If you are using windows then use these [directions](). <br>
-`$ ssh -i [path to provided key] ubuntu@[your master instance IP address]`
+```
+$ ssh -i [path to provided key] ubuntu@[your master instance IP address]
+```
 
 2) Ensure your salt master is running and has no errors. <br>
-`$ systemctl status salt-master`
+```
+$ systemctl status salt-master
+```
 
-3) Browse the master configuration file `/etc/salt/master`. <br>
+3) Browse the master configuration file `/etc/salt/master` <br>
 The listed directories under `file_roots` is where salt will look
 for states, modules, and managed files.
 ```YAML
@@ -90,15 +94,17 @@ manage_apache_conf:
     - source: salt://files/apache2.conf
 ```
 
-3) Check that the state is valid and works
+3) Check to ensure the state is valid and then run it.
 ```
-$ salt \
+$ salt \*master state.sls manage_apache test=True
 $ salt \*master state.apply manage_apache
 ```
 
-We can also make use of a highstate by creating a top file which applies these two states we created.
+We can use a highstate by creating a `top.sls` file. <br>
+When we run a highstate it will read the top file and apply the states listed.
 
-```
+```YAML
+$ nano /srv/salt/top.sls
 # /srv/salt/top.sls
 
 base:
@@ -106,12 +112,10 @@ base:
     - apache
     - manage_apache
 ```
-Run it via
-```
+Apply the highstate with either command.
+```YAML
 salt \*master state.apply
-```
-or
-```
+# or
 salt \*master state.highstate
 ```
 
