@@ -168,8 +168,8 @@ $ salt \*master state.apply pip inotify test=True
 $ salt \*master state.apply
 ```
 
-5) We can now add the beacon to the minion's configuration by adding files to
-the `/etc/salt/minion.d` directory.
+5) We can now add the beacon settings to the minion's configuration by adding a
+new file to the `/etc/salt/minion.d` directory.
 ```YAML
 $ nano /etc/salt/minion.d/beacons.conf
 # /etc/salt/minion.d/beacons.conf
