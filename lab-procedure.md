@@ -18,7 +18,7 @@ If you are using windows then use these [directions](). <br>
 
 3) Browse the master configuration file `/etc/salt/master`. <br>
 The listed directories under `file_roots` is where salt will look
-for states, modules, and/or other files.
+for states, modules, and managed files.
 ```YAML
 $ cat /etc/salt/master
 file_roots:
@@ -79,7 +79,7 @@ into the salt's `file_roots` with the states used to manage apache.
 ```
 $ cp /etc/apache2/apache2.conf /srv/salt/apache/apache2.conf
 ```
-2) Create a new state for applying the version controlled config to the running apache server.
+2) Create a new state for applying the newly copied configuration file to the apache server.
 ```YAML
 $ nano /srv/salt/apache/manage_apache.sls
 # /srv/salt/apache/manage_apache.sls
@@ -90,9 +90,10 @@ manage_apache_conf:
     - source: salt://files/apache2.conf
 ```
 
-Let's run this state
+3) Check that the state is valid and works
 ```
-salt \*master state.apply manage_apache
+$ salt \
+$ salt \*master state.apply manage_apache
 ```
 
 We can also make use of a highstate by creating a top file which applies these two states we created.
