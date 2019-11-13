@@ -14,17 +14,17 @@ Login to your respective [environment]().
 ssh -i [path to provided key] ubuntu@[your master instance IP address]
 ```
 
-Ensure your salt master is running.
+Ensure your salt master is running and has no errors.
 ```
 systemctl status salt-master
 ```
-In the master configuration file `/etc/salt/master` we will see the following:
+Browse the master configuration file `/etc/salt/master` you should see the following:
 ```
 file_roots:
   base:
     - /srv/salt
 ```
-This is where salt will look for states, modules, and/or other files.
+NOTE: This is where salt will look for states, modules, and/or other files.
 
 
 ***
