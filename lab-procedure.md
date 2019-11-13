@@ -25,7 +25,7 @@ file_roots:
     - /srv/salt
 ```
 
-4) Check what minion keys are accepted by your master, `salt-key -L`, <br>
+4) <tag> Check what minion keys are accepted by your master, `salt-key -L`, <br>
 then check that your master can connect to all listed minions.  <br>
 ```YAML
 $ salt \* test.version
@@ -37,8 +37,9 @@ dynamic-lab000-minion-blue:
     2019.2.2
 ```
 The return will look similar to the code snippet. <br>
-If your return looks questionable, please **request assistance**.
-***
+If your return looks questionable, please **request assistance**. </tag>
+<br>
+
 ## Part 1: Built-in inotify beacon
 
 For this part we will use salt to install and configure Apache web server for the demonstration.
