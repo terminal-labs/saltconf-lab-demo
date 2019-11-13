@@ -100,7 +100,7 @@ $ salt \*master state.sls manage_apache test=True
 $ salt \*master state.apply manage_apache
 ```
 
-We can apply these states in one command with a highstate by creating a `top.sls` file. <br>
+4) We can apply these states in one command with a highstate by creating a `top.sls` file. <br>
 When we run a highstate it will read the top file and apply the states listed.
 
 ```YAML
@@ -119,7 +119,7 @@ salt \*master state.apply
 salt \*master state.highstate
 ```
 
-### _Automatic management via inotify beacon_
+## Part 3 Manage apache automatically with salt beacon
 
 Suppose this apache2.conf gets modified. We may want to automatically restore the managed configuration.
 This example can make use of salt's built-in inotify beacon. We can configure the beacon to watch for file modifications,
