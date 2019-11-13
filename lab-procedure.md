@@ -8,8 +8,9 @@ This lab will expose students to the following:
 
 
 ***
-## Part 0: Getting Setup
-1) Login to your respective [environment]().
+## Part 0: Check your cluster
+1) Login to your assigned [environment]().
+If you are using windows then use these [directions]().
 ```
 $ ssh -i [path to provided key] ubuntu@[your master instance IP address]
 ```
@@ -17,6 +18,22 @@ $ ssh -i [path to provided key] ubuntu@[your master instance IP address]
 2) Ensure your salt master is running and has no errors.
 ```
 $ systemctl status salt-master
+● salt-master.service - The Salt Master Server
+   Loaded: loaded (/lib/systemd/system/salt-master.service; enabled; vendor preset: enabled
+   Active: active (running) since Wed 2019-11-13 17:40:41 UTC; 57min ago
+     Docs: man:salt-master(1)
+           file:///usr/share/doc/salt/html/contents.html
+           https://docs.saltstack.com/en/latest/contents.html
+ Main PID: 10254 (salt-master)
+    Tasks: 38 (limit: 2361)
+   CGroup: /system.slice/salt-master.service
+           ├─10254 /usr/bin/python2 /usr/bin/salt-master
+
+
+Nov 13 17:40:39 ip-172-31-31-117 systemd[1]: Stopped The Salt Master Server.
+Nov 13 17:40:39 ip-172-31-31-117 systemd[1]: Starting The Salt Master Server...
+Nov 13 17:40:39 ip-172-31-31-117 salt-master[10254]: /usr/lib/python2.7/dist-packages/salt/
+Nov 13 17:40:41 ip-172-31-31-117 systemd[1]: Started The Salt Master Server.
 ```
 
 3) Browse the master configuration file `/etc/salt/master`.
