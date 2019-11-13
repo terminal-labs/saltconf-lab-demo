@@ -183,8 +183,8 @@ beacons:
     - disable_during_state_run: True
 ```
 
-***NOTE: `disable_during_state_run: True` is necessary to avoid loops when the file is
-intentionally modified later in the lab.***
+**NOTE:** `disable_during_state_run: True` is necessary to avoid loops when the file is
+intentionally modified later in the lab.
 
 6) Restart the minion to apply the new minion settings.
 ```
