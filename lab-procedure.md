@@ -14,9 +14,7 @@ If you are using windows then use these [directions](). <br>
 `$ ssh -i [path to provided key] ubuntu@[your master instance IP address]`
 
 2) Ensure your salt master is running and has no errors.
-```
-$ systemctl status salt-master
-```
+`$ systemctl status salt-master`
 
 3) Browse the master configuration file `/etc/salt/master`. <br>
 The listed directories under `file_roots` is where salt will look
@@ -28,11 +26,9 @@ file_roots:
     - /srv/salt
 ```
 
-4) Check what minion keys are accepted by your master, `$ salt-key -L`, <br>
-then check that your master can conenct to all listed minions.
-```
-$ salt \* test.version
-```
+4) Check what minion keys are accepted by your master, `salt-key -L`, <br>
+then check that your master can connect to all listed minions.  <br>
+`$ salt \* test.version` <br>
 The return will look similar to the below code snippet. <br>
 If your return looks questionable, please **request assistance**.
 ```YAML
