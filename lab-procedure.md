@@ -31,7 +31,7 @@ then check that your master can conenct to all listed minions.
 ```
 salt \* test.version
 ```
-The response should look similar to the following:
+The response should look similar to the following, and if any are missing *request assistance.
 ```YAML
 dynamic-lab000-minion-red:
     2019.2.2
