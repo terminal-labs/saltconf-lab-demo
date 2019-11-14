@@ -1,0 +1,5 @@
+# /etc/salt/master
+
+file_roots:
+  base:
+    - /srv/salt

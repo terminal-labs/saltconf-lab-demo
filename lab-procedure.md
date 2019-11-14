@@ -110,7 +110,7 @@ $ nano /srv/salt/apache/manage_apache.sls
 manage_apache_conf:
   file.managed:
     - name: /etc/apache2/apache2.conf
-    - source: salt://files/apache2.conf
+    - source: salt://apache/apache2.conf
 ```
 
 3) Check to ensure the state is valid and then run it.
@@ -262,7 +262,9 @@ systemctl restart salt-master
 
 ### Part 3.1: React to the reactor reacting...
 
-1) View the event bus while modifying apache2.conf. The file should be replaced with the one being served by salt://files/apache2.conf faster than you can say thorium salt reactor!
+1) View the event bus while modifying `apache2.conf`. The file should be
+replaced with the one being served by `salt://apache/apache2.conf` faster than
+you can say thorium salt reactor!
 ```
 $ echo "hello world" >> /etc/apache2/apache2.conf
 ```
@@ -270,68 +272,62 @@ $ echo "hello world" >> /etc/apache2/apache2.conf
 
 
 ***
-## Part 4: Custom beacon to monitor traffic and send text message
+## Part 4: Custom beacon to monitor traffic
+Salt can be extended and modified extensively with custom python code. In this
+lab we will install a custom beacon created to extend salt's event system. For
+more information on _how_ to write custom beacons see the [docs](https://docs.saltstack.com/en/develop/topics/beacons/#writing-beacon-plugins).
 
-Salt's event system can be easily extended with custom beacons! For more information on _how_ to write custom beacons see the doc section [here](https://docs.saltstack.com/en/develop/topics/beacons/#writing-beacon-plugins). For the purpose of this lab session,
-we will use a pre-written custom beacon module.
-
-Create a ```_beacons``` directory in /srv/salt and download the file hosted [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/_beacons/pcap_watch.py)
-
+1) Create a `_beacons` directory in `/srv/salt` and download the [beacon](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/_beacons/pcap_watch.py)
 ```
-mkdir _beacons
-cd _beacons
+mkdir _beacons; cd _beacons;
 wget https://raw.githubusercontent.com/terminal-labs/saltconf-lab-demo/master/lab_files/salt/_beacons/pcap_watch.py -O pcap_watch.py
 ```
 
-This beacon will monitor a pcap file for packets and will send an event if the packet rate exceeds the limit specified for each ip, respectively. It assumes we have configured packet filtering accordingly.
+2) We need to make sure tshark is installed.
 
-For our purposes, we will use tshark and the following command:
+```YAML
+$ mkdir /srv/salt/tshark
+$ nano /srv/salt/tshark/init.sls
+# /srv/salt/tshark/init.sls
+
+install_tshark:
+  pkg.installed:
+    - name: tshark
+```
+
+2) This beacon will watch a pcap file to monitor packet rates. If the packet
+rate exceeds the limit specified for each ip a event will be triggered. For our
+purposes, we will use tshark. This will setup monitoring on the eth0
+interface, writing the packets to `/var/tmp/tshark.pcap` using the `libpcap`
+library. It specifies UTC as the timestamp and sets up a filter for tcp packets
+with destination port 80.
 ```
 tshark -i eth0 -F libpcap -t u -f 'tcp dst port 80' -w /var/tmp/tshark.pcap
 ```
 
-This will setup monitoring on the eth0 interface, writing the packets to /var/tmp/tshark.pcap using the libpcap library.
-It specifies UTC as the timestamp and sets up a filter for tcp packets with destination port 80.
-
 Let's make a state to start this process in the background
-```
-# /srv/salt/start_tshark_process.sls
+```YAML
+# /srv/salt/tshark/start_tshark.sls
 
-start_tshark_process:
+start_tshark:
   cmd.run:
     - name: "tshark -i eth0 -F libpcap -t u -f 'tcp dst port 80' -w '/var/tmp/tshark.pcap'"
     - bg: True
 
 ```
-Also, we need to make sure thsark is installed. Let's add it to the demo_pkgs state
 
-```
-# /srv/salt/demo_pkgs.sls
 
-...
-
-install_tshark:
-  pkg.installed:
-    - name: tshark
-
+Apply our highstate again, and run our tshark state.
 ```
-
-And apply our higstate once again:
-```
-salt \*master state.apply
-```
-Now we can run our tshark process on the master
-```
-salt \*master state.apply start_tshark_process
+$ salt \*master state.apply
+$ salt \*master state.apply start_tshark
 ```
 
 Alas, we will also need the [dpkt](https://github.com/kbandla/dpkt) python library and to configure the custom beacon.
 
 First we can add dpkt to demo_pkgs.sls
-```
-# /srv/salt/demo_pkgs.sls
-
-...
+```YAML
+# /srv/salt/dpkt/init.sls
 
 install_dpkt:
   pip.installed:
@@ -344,8 +340,8 @@ salt \*master state.apply
 ```
 
 We can use the example minion config contained in the docstring of the pcap_watch.py file we alreaded downloaded
-in our _beacons folder
-```
+in our `_beacons` folder
+```YAML
 # /etc/salt/minion.d/beacons.conf
 
 beacons:
@@ -353,7 +349,6 @@ beacons:
     - pcap_file: /var/tmp/tshark.pcap
     - rate_limit: 100  # packets / sec
     - pcap_period: 1   # sec of pcap data to use every beacon interval
-
 ```
 
 __Note__ The pcap_file from the tshark process must be specified here

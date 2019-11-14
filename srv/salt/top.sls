@@ -1,9 +1,11 @@
+# /srv/salt/top.sls
+
 base:
   '*master':
+    - pkg
+    - pip
     - ufw
-    - python_pip
-    - demo_pkgs
     - apache
     - manage_apache
   '*':
-    - install_apache_bench
+    - apache_bench
