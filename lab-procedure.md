@@ -9,14 +9,22 @@ This lab will expose students to the following:
 
 
 ## Glossary
-- [Part 0]()
-- [Part 1]()
-- [Part 1.1]()
-- [Part 2]()
-- [Part 2.1]()
+- [Part 0](#part-0-check-your-salt-cluster)
+  - Check your cluster setup
+- [Part 1](#part-1-install-apache-with-salt-states)
+  - Install apache with salt states
+- [Part 1.1](#part-11-manage-apache-with-salt)
+  - Manage apache manually through salt states
+- [Part 2](#part-2-monitor-apache-with-salt-beacons)
+  - Setup your first salt beacons to watch for changes to apache files
+- [Part 2.1](#part-21-observe-the-beacon-observing)
+  - Test the salt beacon in action
 - [Part 3](#part-3-act-on-beacon-reports-with-salt-reactors)
-- [Part 3.1](https://github.com/alan-cugler/saltconf-lab-demo/blob/master/lab-procedure.md#part-31-react-to-the-reactor-reacting)
-- [Part 4](https://github.com/alan-cugler/saltconf-lab-demo/blob/master/lab-procedure.md#part-4-custom-beacon-to-monitor-traffic-and-send-text-message)
+  - Setup your first salt reactor to respond to events
+- [Part 3.1](#part-31-react-to-the-reactor-reacting)
+  - Test the salt reactor in action
+- [Part 4](#part-4-custom-beacon-to-monitor-traffic-and-send-text-message)
+  - How to add in custom beacon code to salt
 <br>
 
 
