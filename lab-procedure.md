@@ -7,7 +7,7 @@ This lab will expose students to the following:
   - Then using the custom beacon to provide firewall remediation of a potential DDOS attack
 <br>
 
-
+***
 ## Glossary
 - [Part 0](#part-0-check-your-salt-cluster)
   - Check your cluster setup
@@ -27,7 +27,7 @@ This lab will expose students to the following:
   - How to add in custom beacon code to salt
 <br>
 
-
+***
 ## Part 0: Check your salt cluster
 1) Login to your assigned [environment]().
 If you are using windows then use these [directions]().
