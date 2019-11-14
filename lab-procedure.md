@@ -15,7 +15,7 @@ This lab will expose students to the following:
 - [Part 2]()
 - [Part 2.1]()
 - [Part 3][1]
-[1]:https://github.com/alan-cugler/saltconf-lab-demo/blob/master/lab-procedure.md#part-3-act-on-beacon-reports-with-salt-reactors
+[1](:https://github.com/alan-cugler/saltconf-lab-demo/blob/master/lab-procedure.md#part-3-act-on-beacon-reports-with-salt-reactors)
 - [Part 3.1](https://github.com/alan-cugler/saltconf-lab-demo/blob/master/lab-procedure.md#part-31-react-to-the-reactor-reacting)
 - [Part 4](https://github.com/alan-cugler/saltconf-lab-demo/blob/master/lab-procedure.md#part-4-custom-beacon-to-monitor-traffic-and-send-text-message)
 <br>
