@@ -435,7 +435,7 @@ You should now see text messages indicating the infringing ip and rate detected 
 Instead of a mere text message, we may desire auto remediation via firewall. Let's write a salt reactor to block the infringing ip automatically with a firewall rule.
 
 Let's use ufw for this.
-Make sure to open ports 4505,4506 (for salt) and port 80 (for http).
+Make sure to open ports 4505,4506 (for salt), port 80 (for http) and port 22 (for ssh).
 The following state will do this
 
 ```
@@ -460,6 +460,10 @@ open_salt_port_4506:
 allow_http:
   cmd.run:
     - name: ufw allow http
+
+allow_ssh:
+  cmd.run:
+    - name: ufw allow ssh
 ```
 
 Apply it to the master:
