@@ -1,10 +1,10 @@
 # Lab Procedure
 
-This lab procedure will walk through how to do the following:
+This lab procedure will discuss the following:
 - Using a built in beacon / reactor to restore a modified apache config
 - Using a (pre-made) custom beacon to monitor for high packet rates on port 80, 
 and sending a text message to a sys admin
-- Using same custom beacon to provide firewall remediation of the potential DDOS attack
+- Using the same custom beacon to provide firewall remediation of the potential DDOS attack
 
 ## Part 1: Built-in inotify beacon
 
@@ -24,19 +24,49 @@ Let's make the /srv/salt directory and create a state to install apache.
 mkdir /srv/salt
 cd /srv/salt
 ```
+
+Though we can use simple .sls files in the file_roots directory, better practice is to include files in a directory with an init.sls file
+
+
 ```
-# /srv/salt/apache.sls
+mkdir apache
+cd apache
+touch init.sls
+mkdir files
+```
+
+```
+# /srv/salt/apache/init.sls
 
 install_apache:
   pkg.installed:
     - name: apache2
 
+manage_apache_conf:
+  file.managed:
+    - name: /etc/apache2/apache2.conf
+    - source: salt://apache/files/apache2.conf
+    - require:
+      - install_apache
+
 run_apache:
   service.running:
     - name: apache2
+    - enable: True
+    - require:
+      - install_apache
+    - watch:
+      - manage_apache_conf
+
 ```
 
-and apply the state to the master
+Notice that the above ```manage_apache_conf``` id block requires the apache config to be located in salt://apache/files/apache2.conf. You can download this file from [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/apache/files/apache2.conf)
+
+```
+wget https://raw.githubusercontent.com/terminal-labs/saltconf-lab-demo/master/lab_files/salt/apache/files/apache2.conf -O /srv/salt/apache/files/apache2.conf
+```
+
+Now apply the state to the master
 ```
 salt \*master state.apply apache
 ```
@@ -46,7 +76,49 @@ Test ensure the standard apache landing page is being served on port 80
 curl localhost | grep "It works!"
 ```
 
-Let's also see if we can reach this page from the minions.
+Before we go much further, let's set enable and configure ufw. We will be using this program later for DDOS attach remediation
+
+Create another folder for the ufw state
+```
+cd /srv/salt
+mkdir ufw
+touch ufw/init.sls
+```
+```
+# /srv/salt/ufw/init.sls
+
+install_ufw:
+  pkg.installed:
+    - name: ufw
+
+enable_ufw:
+  cmd.run:
+    - name: ufw enable
+
+open_salt_port_4505:
+  cmd.run:
+    - name: ufw allow 4505
+
+open_salt_port_4506:
+  cmd.run:
+    - name: ufw allow 4506
+
+allow_http:
+  cmd.run:
+    - name: ufw allow http
+
+allow_ssh:
+  cmd.run:
+    - name: ufw allow ssh
+```
+
+This will ensure ufw is installed and then proceed to enable and allow the relevant ports.
+Now apply this to the master
+```
+salt \*master state.apply
+```
+
+Let's see if we can reach this page from the minions.
 First identify the master's private ip. We can do this by examining the inet listed by ifconfig on eth0. Alternatively, we can use salt's ```network``` module
 
 ```
@@ -58,30 +130,6 @@ Then utilize salt's ```cmd.run``` to curl that ip on all minions:
 salt \* cmd.run "curl <ip-address> | grep 'It works'"
 ```
 
-### _Managing apache conf_
-
-We'd like to have a source of truth for the apache configuration file (located in /etc/apache2/apache2.conf on ubuntu)
-Let's make a copy of this file in our ```file_roots``` directory and include a state to manage this file with salt.
-
-```
-mkdir /srv/salt/files
-cp /etc/apache2/apache2.conf /srv/salt/files/apache2.conf
-```
-
-```
-# /srv/salt/manage_apache.sls
-
-manage_apache_conf:
-  file.managed:
-    - name: /etc/apache2/apache2.conf
-    - source: salt://files/apache2.conf
-```
-
-Let's run this state
-```
-salt \*master state.apply manage_apache
-```
-
 We can also make use of a highstate by creating a top file which applies these two states we created.
 
 ```
@@ -90,7 +138,7 @@ We can also make use of a highstate by creating a top file which applies these t
 base:
   '*master':
     - apache
-    - manage_apache
+    - ufw
 ```
 Run it via
 ```
@@ -110,10 +158,10 @@ More on that in a minute, but first, let's set up the inotify beacon.
 
 For more info on beacons see the docs [here](https://docs.saltstack.com/en/develop/topics/beacons/)
 
-In the minion config we can include the following:
-```
-# /etc/salt/minion.d/beacons.conf
+Beacons are configured via the minion config, but let's write a salt state to do this utilizing ```file.managed```. We will be using the final beacon configuration located [here]() which includes both beacons we will use throughout this procedure. 
 
+The configuration for the inotify beacon: 
+```
 beacons:
   inotfiy:
     - files:
@@ -124,65 +172,102 @@ beacons:
 
 ```
 
-```disable_during_state_run: True``` is very important here to avoid loops, since our reactor will replace this file with the correct version (thus modifying it again)
+__Note__ ```disable_during_state_run: True``` is very important here to avoid loops, since our reactor will replace this file with the correct version (thus modifying it again)
 
-```inotify``` and ```pyinotify``` must be installed to use the ```inotify``` beacon.
+__Note__ ```inotify``` and ```pyinotify``` must be installed to use the ```inotify``` beacon.
 
+Since we will need pip to install pyinotify let's create a ```core``` state to install pip and apply it to our topfile
 
-We could install these with apt, but let's write a couple states instead and add to our topfile.
-
-We will need pip:
 ```
-# /srv/salt/python_pip.sls
+# /srv/salt/core.sls
 
-install_python_pip:
+install_pip:
   pkg.installed:
     - name: python-pip
 ```
-
-And other packages:
 ```
-# /srv/salt/demo_packages.sls
+# /srv/salt/top.sls
 
-install_inotify:
+base:
+  '*':
+    - core:
+  '*master':
+    - apache
+    - ufw
+```
+
+And apply it
+```
+salt \* state.apply
+```
+
+Now let's create a directory ```enable_beacons``` which we can use to include a state for each beacon we setup.
+
+First we will write the state for enabling ```inotify``` so let's put this in ```enable_beacons/inotify.sls```
+
+```
+mkdir enable_beacons
+```
+```
+# /srv/salt/enable_beacons/inotify.sls
+
+apply_inotify_beacon_config:
+  file.managed:
+    - name: /etc/salt/minion.d/beacons.conf
+    - source: salt://conf/minion/beacons.conf
+
+install_inotify_tools:
   pkg.installed:
     - name: inotify-tools
 
 install_pyinotify:
   pip.installed:
     - name: pyinotify
-```
-Let's add them to our existing topfile
-```
-# /srv/salt/top.sls
-base:
-  '*master':
-    - python_pip
-    - demo_pkgs
-    - apache
-    - manage_apache
-```
+    - require:
+      - install_inotify_tools
 
-and run it:
-```
-salt \*master state.highstate
-```
-
-Remember to restart the salt master / minion after making configuration changes
+restart_minion:
+  cmd.run:
+    - name: systemctl restart salt-minion
+    - bg: True
 
 ```
-systemctl restart salt-minion
+
+__Note__ We must have the the conf file stored in ```salt://conf/minion/beacons.conf``` for the above state to execute properly. We can download beacons.conf [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/minion/beacons.conf)
+
+```
+mkdir -p /srv/salt/conf/minion
+wget https://raw.githubusercontent.com/terminal-labs/saltconf-lab-demo/master/lab_files/salt/conf/minion/beacons.conf -O /srv/salt/conf/minion/beacons.conf
+```
+
+and apply it:
+```
+salt \*master state.apply enable_beacons.inotify
 ```
 
 __Try it__ Modify apache.conf and you should be able to see the event on the master event bus using ```salt-run state.event pretty=True``` 
 
 ### _Configuring the reactor_
 
-Reactors can be configured via /etc/salt/master or in the /etc/salt/master.d directory. 
+Reactors can be configured via /etc/salt/master or in the /etc/salt/master.d directory, but again let's write a state to manage this.
 
-Let's put our reactor config in /etc/salt/master.d/reactors.conf:
 ```
-# /etc/salt/master.d/reactors.conf
+# /srv/salt/enable_reactors/init.sls
+apply_reactor_config:
+  file.managed:
+    - name: /etc/salt/master.d/reactors.conf
+    - source: salt://conf/master/reactors.conf
+
+restart_master:
+  cmd.run:
+    - name: systemctl restart salt-master
+    - bg: True
+```
+
+Be sure to download reactors.conf from [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/master/reactors.conf) and store it in salt://conf/master/reactors.conf
+
+Take a look at the reactor config for the inotify event
+```
 reactor:
   - salt/beacon/*/inotify//etc/apache2/apache2.conf
     - /srv/salt/reactors/call_manage_apache.sls
@@ -199,15 +284,15 @@ call_manage_apache:
   local.state.apply:
     - tgt: {{ data['id'] }}
     - arg:
-      - manage_apache_conf
+      - apache
 
 ```
 
 This orchestration will instruct the minion to apply the manage_apache state we wrote earlier to the tgt specified by the event data's id key.
 
-Make sure to restart the salt master.
+After including the appropriate files enable the reactors
 ```
-systemctl restart salt-master
+salt \*master state.apply enable_reactors
 ```
 
 __Try it__ View the event bus while modifying apache2.conf. The file should be replaced with the one being served by salt://files/apache2.conf faster than you can say thorium salt reactor!
