@@ -7,3 +7,7 @@ restart_master:
   cmd.run:
     - name: systemctl restart salt-master
     - bg: True
+
+install_twilio:
+  pip.installed:
+    - name: twilio

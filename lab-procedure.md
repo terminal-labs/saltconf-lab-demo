@@ -310,6 +310,11 @@ cd _beacons
 wget https://raw.githubusercontent.com/terminal-labs/saltconf-lab-demo/master/lab_files/salt/_beacons/pcap_watch.py -O pcap_watch.py
 ```
 
+And we can sync the beacon modules to the minions with the following command
+```
+salt \* saltutil.sync_beacons
+```
+
 This beacon will monitor a pcap file for packets and will send an event if the packet rate exceeds the limit specified for each ip, respectively. It assumes we have configured packet filtering accordingly.
 
 For our purposes, we will use tshark and the following command:
@@ -320,9 +325,27 @@ tshark -i eth0 -F libpcap -t u -f 'tcp dst port 80' -w /var/tmp/tshark.pcap
 This will setup monitoring on the eth0 interface, writing the packets to /var/tmp/tshark.pcap using the libpcap library.
 It specifies UTC as the timestamp and sets up a filter for tcp packets with destination port 80.
 
-Let's make a state to start this process in the background
+Let's make a state to install required packages, enable the beacon, and start the required tshark process in the background
+
 ```
-# /srv/salt/start_tshark_process.sls
+# /srv/salt/enable_beacons/pcap_watch.sls
+install_tshark:
+  pkg.installed:
+    - name: tshark
+
+install_dpkt:
+  pip.installed:
+    - name: dpkt
+
+manage_pcap_watch_beacon_config:
+  file.managed:
+    - name: /etc/salt/minion.d/beacons.conf
+    - source: salt://conf/minion/beacons.conf
+
+restart_minion_00:
+  cmd.run:
+    - name: systemctl restart salt-minion
+    - bg: True
 
 start_tshark_process:
   cmd.run:
@@ -330,66 +353,16 @@ start_tshark_process:
     - bg: True
   
 ```
-Also, we need to make sure thsark is installed. Let's add it to the demo_pkgs state
 
+Take a look at the pcap_watch beacon configuration. Notice that the pcap_file from the tshark process is specified here
 ```
-# /srv/salt/demo_pkgs.sls
-
-...
-
-install_tshark:
-  pkg.installed:
-    - name: tshark
-
-```
-
-And apply our higstate once again:
-```
-salt \*master state.apply
-```
-Now we can run our tshark process on the master
-```
-salt \*master state.apply start_tshark_process
-```
-
-Alas, we will also need the [dpkt](https://github.com/kbandla/dpkt) python library and to configure the custom beacon.
-
-First we can add dpkt to demo_pkgs.sls
-```
-# /srv/salt/demo_pkgs.sls
-
-...
-
-install_dpkt:
-  pip.installed:
-    - name: dpkt
-
-```
-and re-run our highstate
-```
-salt \*master state.apply
-```
-
-We can use the example minion config contained in the docstring of the pcap_watch.py file we alreaded downloaded
-in our _beacons folder
-```
-# /etc/salt/minion.d/beacons.conf
-
 beacons:
+  ...
   pcap_watch:
     - pcap_file: /var/tmp/tshark.pcap
     - rate_limit: 100  # packets / sec
     - pcap_period: 1   # sec of pcap data to use every beacon interval
 
-```
-
-__Note__ The pcap_file from the tshark process must be specified here
-
-Be sure to sync the beacon and restart the minion
-
-```
-salt \*master saltutil.sync_beacons
-systemctl restart salt-minion
 ```
 
 ### _Twilio text (optional)_
@@ -447,24 +420,19 @@ twilio_text:
 
 ```
 
-And setup a reactor to use it from the pcap_watch event:
+The ```enable_reactors``` state we already made will configure the twilio reactor. Notice this section in the managed conf file.
 ```
-# /etc/salt/master.d/reactors.con
 reactor:
   ...
   - salt/beacon/*/pcap_watch:
     - /srv/salt/reactors/twilio_text.sls
 ```
 
-Remember to sync, and restart master / minion processes
-```
-salt \* saltutil.sync_all
-systemctl restart salt-master salt-minion
-```
+The ```enable_reactors``` will also restart the master, needed to apply the twilio information we applied there.
 
-Make sure to install the additional packages, i.e, the ```twilio``` module
+But we will also need the python twilio module. Let's add this to the enable_reactors state and re-run it.
 ```
-# /srv/salt/demo_pkgs.sls
+# /srv/salt/enable_reactors/init.sls
 
 ...
 
@@ -474,7 +442,7 @@ install_twilio:
 
 ```
 ```
-salt \*master state.apply
+salt \*master state.apply enable_reactors
 ```
 
 We can refresh the pillar data for the twilio module with the following command:
@@ -485,24 +453,15 @@ salt \* saltutil.refresh_pillar
 Almost ready to test! Let's add apache bench (ab) as a requirement for all minions.
 
 ```
-# /srv/salt/install_apache_bench.sls
+# /srv/salt/core.sls
+...
 
 install_apache_bench:
   pkg.installed:
     - name: apache2-utils
 ```
-And modify our topfile:
-```
-# /srv/salt/top.sls
 
-base:
-  ...
-  '*':
-    - install_apache_bench
-
-```
-
-Then, run a highstate:
+Then, run another highstate:
 ```
 salt \* state.apply
 ```
@@ -510,7 +469,7 @@ salt \* state.apply
 Now, let's send loads of traffic to our apache host (using the private ip from earlier) using apache bench on the red / blue minions
 
 ```
-salt \*minion\* cmd.run "ab -n 5000 http://<ip-goes-here>/
+salt \*minion\* cmd.run "ab -n 5000 http://<ip-goes-here>/"
 ```
 
 You should now see text messages indicating the infringing ip and rate detected by the pcap_watch beacon!
@@ -519,52 +478,7 @@ You should now see text messages indicating the infringing ip and rate detected 
 
 Instead of a mere text message, we may desire auto remediation via firewall. Let's write a salt reactor to block the infringing ip automatically with a firewall rule.
 
-Let's use ufw for this.
-Make sure to open ports 4505,4506 (for salt), port 80 (for http) and port 22 (for ssh).
-The following state will do this
-
-```
-# /srv/salt/ufw.sls
-
-install_ufw:
-  pkg.installed:
-    - name: ufw
-
-enable_ufw:
-  cmd.run:
-    - name: ufw enable
-
-open_salt_port_4505:
-  cmd.run:
-    - name: ufw allow 4505
-
-open_salt_port_4506:
-  cmd.run:
-    - name: ufw allow 4506
-
-allow_http:
-  cmd.run:
-    - name: ufw allow http
-
-allow_ssh:
-  cmd.run:
-    - name: ufw allow ssh
-```
-
-Apply it to the master:
-```
-# /srv/salt/top.sls
-
-base:
-  '*master':
-    - ufw
-    ...
-```
-```
-salt \* state.apply
-```
-
-Ok, now let's create our reactor to block the infringing ip
+We already enabled ufw before. Now let's create a reactor to block the infringing ip
 
 ```
 # /srv/salt/reactors/block_ip.sls
@@ -576,11 +490,8 @@ block_ip:
       - "ufw insert 1 deny from {{ data['src_ip'] }} to any port 80"
 ```
 
-and include this reaction in the master config
-
+This is already included in our reactor config from earlier as seen from the following
 ```
-# /etc/salt/master.d/reactors.conf
-
 reactor:
   ...
   - salt/beacon/*/pcap_watch/:
@@ -588,10 +499,9 @@ reactor:
     - /srv/salt/reactors/block_ip.sls
 ```
 
-Restart the salt master
-
+We can make sure it's enabled by rerunning the state
 ```
-systemctl restart salt-master
+salt \*master state.apply enable_reactors
 ```
 
 __Try it!__
