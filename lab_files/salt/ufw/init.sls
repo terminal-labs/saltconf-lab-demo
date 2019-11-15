@@ -8,11 +8,11 @@ enable_ufw:
 
 open_salt_port_4505:
   cmd.run:
-    - name: ufw enable 4505
+    - name: ufw allow 4505
 
 open_salt_port_4506:
   cmd.run:
-    - name: ufw enable 4506
+    - name: ufw allow 4506
 
 allow_http:
   cmd.run:
