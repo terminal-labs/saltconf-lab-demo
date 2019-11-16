@@ -70,7 +70,7 @@ For this part we will use salt to install and start Apache web server for the de
 1) Create a salt state to install apache in the `/srv/salt` directory.
 
 ```YAML
-$ mkdir -p /srv/salt/apache; nano /srv/salt/apache/init.sls
+$ mkdir -p /srv/salt/apache/files; nano /srv/salt/apache/init.sls
 # /srv/salt/apache/init.sls
 
 install_apache:
