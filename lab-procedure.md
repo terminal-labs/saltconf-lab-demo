@@ -10,29 +10,21 @@ and sending a text message to a sys admin
 
 For this part we will use Apache web server for demonstration. Let's install and configure the service using salt.
 
-In the master config (/etc/salt/master) we see the following:
-```
-file_roots:
-  base:
-    - /srv/salt
-```
-This is where salt will look for states, modules, and/or other files.
+The ```file_roots``` parameter in the master config (/etc/salt/master) is where salt will look for states, modules, and/or other files.
+By default this is ```/srv/salt``` for the base environment
 
-Let's make the /srv/salt directory and create a state to install apache.
+Let's make the directory and create a state to install apache.
 
 ```
 mkdir /srv/salt
 cd /srv/salt
 ```
 
-Though we can use simple .sls files in the file_roots directory, better practice is to include files in a directory with an init.sls file
-
 
 ```
 mkdir apache
-cd apache
-touch init.sls
-mkdir files
+touch apache/init.sls
+mkdir apache/files
 ```
 
 ```
@@ -76,11 +68,10 @@ Test ensure the standard apache landing page is being served on port 80
 curl localhost | grep "It works!"
 ```
 
-Before we go much further, let's set enable and configure ufw. We will be using this program later for DDOS attach remediation
+Before we go much further, let's enable and configure ufw. We will be using this program later for DDOS attack remediation
 
 Create another folder for the ufw state
 ```
-cd /srv/salt
 mkdir ufw
 touch ufw/init.sls
 ```
@@ -112,14 +103,15 @@ allow_ssh:
     - name: ufw allow ssh
 ```
 
-This will ensure ufw is installed and then proceed to enable and allow the relevant ports.
+This will ensure ufw is installed, enabled and allowing the appropriate ports.
+
 Now apply this to the master
 ```
-salt \*master state.apply
+salt \*master state.apply ufw
 ```
 
 Let's see if we can reach this page from the minions.
-First identify the master's private ip. We can do this by examining the inet listed by ifconfig on eth0. Alternatively, we can use salt's ```network``` module
+First identify the master's private ip. To do this we can use salt's ```network``` module
 
 ```
 salt \*master network.ipaddrs
@@ -140,6 +132,7 @@ base:
     - apache
     - ufw
 ```
+
 Run it via
 ```
 salt \*master state.apply
@@ -158,9 +151,9 @@ More on that in a minute, but first, let's set up the inotify beacon.
 
 For more info on beacons see the docs [here](https://docs.saltstack.com/en/develop/topics/beacons/)
 
-Beacons are configured via the minion config, but let's write a salt state to do this utilizing ```file.managed```. We will be using the final beacon configuration located [here]() which includes both beacons we will use throughout this procedure. 
+Beacons are configured via the minion config. Let's write a salt state to do this utilizing ```file.managed```. We will be using the final beacon configuration located [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/minion/beacons.conf) which includes both beacons we will use throughout this procedure. 
 
-The configuration for the inotify beacon: 
+Notice the form of the configuration for the inotify beacon: 
 ```
 beacons:
   inotfiy:
@@ -203,7 +196,7 @@ salt \* state.apply
 
 Now let's create a directory ```enable_beacons``` which we can use to include a state for each beacon we setup.
 
-First we will write the state for enabling ```inotify``` so let's put this in ```enable_beacons/inotify.sls```
+First we will write the state for enabling the ```inotify``` beacon so let's put this in ```enable_beacons/inotify.sls```
 
 ```
 mkdir enable_beacons
@@ -233,7 +226,7 @@ restart_minion:
 
 ```
 
-__Note__ We must have the the conf file stored in ```salt://conf/minion/beacons.conf``` for the above state to execute properly. We can download beacons.conf [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/minion/beacons.conf)
+Make sure we have the the [conf file](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/minion/beacons.conf) served from ```salt://conf/minion/beacons.conf``` (i.e. stored in /srv/salt/conf/minion/beacons.conf) for the configuration to be applied successfuly in the above state.
 
 ```
 mkdir -p /srv/salt/conf/minion
@@ -245,7 +238,7 @@ and apply it:
 salt \*master state.apply enable_beacons.inotify
 ```
 
-__Try it__ Modify apache.conf and you should be able to see the event on the master event bus using ```salt-run state.event pretty=True``` 
+__Try it__ Modify /etc/apache2/apache2.conf and you should be able to see the event on the master event bus using ```salt-run state.event pretty=True``` 
 
 ### _Configuring the reactor_
 
@@ -264,7 +257,7 @@ restart_master:
     - bg: True
 ```
 
-Be sure to download reactors.conf from [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/master/reactors.conf) and store it in salt://conf/master/reactors.conf
+Be sure to download reactors.conf from [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/master/reactors.conf) and store it in salt://conf/master/reactors.conf. This file contains the reactors used throughout this lab procedure.
 
 Take a look at the reactor config for the inotify event
 ```
@@ -295,7 +288,7 @@ After including the appropriate files enable the reactors
 salt \*master state.apply enable_reactors
 ```
 
-__Try it__ View the event bus while modifying apache2.conf. The file should be replaced with the one being served by salt://files/apache2.conf faster than you can say thorium salt reactor!
+__Try it__ View the event bus while modifying apache2.conf. The file will be replaced with the one being served by salt://files/apache2.conf faster than you can say thorium salt reactor!
 
 ## Part 2: Custom beacon to monitor traffic and send text message
 
@@ -310,7 +303,7 @@ cd _beacons
 wget https://raw.githubusercontent.com/terminal-labs/saltconf-lab-demo/master/lab_files/salt/_beacons/pcap_watch.py -O pcap_watch.py
 ```
 
-And we can sync the beacon modules to the minions with the following command
+And we can cache the beacon modules on the minions with the following command
 ```
 salt \* saltutil.sync_beacons
 ```
@@ -420,7 +413,7 @@ twilio_text:
 
 ```
 
-The ```enable_reactors``` state we already made will configure the twilio reactor. Notice this section in the managed conf file.
+The ```enable_reactors``` state we already made will configure the twilio reactor. Notice this section in ```reactors.conf```
 ```
 reactor:
   ...
@@ -428,9 +421,9 @@ reactor:
     - /srv/salt/reactors/twilio_text.sls
 ```
 
-The ```enable_reactors``` will also restart the master, needed to apply the twilio information we applied there.
+The ```enable_reactors``` state will also restart the master, needed to apply the twilio information we applied in the master config.
 
-But we will also need the python twilio module. Let's add this to the enable_reactors state and re-run it.
+We will also need the python twilio module. Let's add this to the enable_reactors state and re-run it.
 ```
 # /srv/salt/enable_reactors/init.sls
 
@@ -466,13 +459,13 @@ Then, run another highstate:
 salt \* state.apply
 ```
 
-Now, let's send loads of traffic to our apache host (using the private ip from earlier) using apache bench on the red / blue minions
+Now, let's send loads of traffic to our apache host (using the private ip from earlier) using apache bench on the red minion
 
 ```
-salt \*minion\* cmd.run "ab -n 5000 http://<ip-goes-here>/"
+salt \*minion-red cmd.run "ab -n 5000 http://<ip-goes-here>/"
 ```
 
-You should now see text messages indicating the infringing ip and rate detected by the pcap_watch beacon!
+You should now see the text message indicating the infringing ip and rate detected by the pcap_watch beacon!
 
 ## Part 3: Auto-remediation via firewall
 
@@ -490,7 +483,7 @@ block_ip:
       - "ufw insert 1 deny from {{ data['src_ip'] }} to any port 80"
 ```
 
-This is already included in our reactor config from earlier as seen from the following
+The following is already included in our reactor config from earlier:
 ```
 reactor:
   ...
@@ -499,7 +492,7 @@ reactor:
     - /srv/salt/reactors/block_ip.sls
 ```
 
-We can make sure it's enabled by rerunning the state
+We can make sure it's enabled by re-running the state
 ```
 salt \*master state.apply enable_reactors
 ```
@@ -518,5 +511,14 @@ salt \*minion-red cmd.run "ab -n 5000 http://<master-ip>/"
 You should've received a text and minion-red should now be blacklisted via ufw!
 
 ```
-salt \*minion\* cmd.run "curl -m 10 <master-ip> | grep 'It works'"
+salt \*minion\* cmd.run "curl -m 5 <master-ip> | grep 'It works'"
+```
+
+You can view the updated firewall rules by executing the following command on the master:
+```
+ufw status
+```
+and delete the added rule with
+```
+ufw delete 1
 ```
