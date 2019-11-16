@@ -52,7 +52,7 @@ run_apache:
 
 ```
 
-Notice that the above ```manage_apache_conf``` id block requires the apache config to be located in salt://apache/files/apache2.conf. You can download this file from [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/apache/files/apache2.conf)
+Notice that the above ```manage_apache_conf``` id block requires the apache config to be served salt://apache/files/apache2.conf (i.e. located in /srv/salt/apache/files/apache2.conf). You can download this file from [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/apache/files/apache2.conf)
 
 ```
 wget https://raw.githubusercontent.com/terminal-labs/saltconf-lab-demo/master/lab_files/salt/apache/files/apache2.conf -O /srv/salt/apache/files/apache2.conf
@@ -257,7 +257,7 @@ restart_master:
     - bg: True
 ```
 
-Be sure to download reactors.conf from [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/master/reactors.conf) and store it in salt://conf/master/reactors.conf. This file contains the reactors used throughout this lab procedure.
+Be sure to download reactors.conf from [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/master/reactors.conf) and store it in the location served by salt://conf/master/reactors.conf. This file contains the reactors used throughout this lab procedure.
 
 Take a look at the reactor config for the inotify event
 ```
@@ -347,6 +347,11 @@ start_tshark_process:
   
 ```
 
+and apply it
+```
+salt \*master state.apply enable_beacons.pcap_watch
+```
+
 Take a look at the pcap_watch beacon configuration. Notice that the pcap_file from the tshark process is specified here
 ```
 beacons:
@@ -409,7 +414,7 @@ twilio_text:
       - twilio_profile
       - "Warning high packet rate detectected from {{ data['src_ip'] }} : {{ data['rate'] }} packets/s"
       - {{ opts['sys_admin_phone'] }}
-      - {{ opts[twilio_from_phone'] }}
+      - {{ opts['twilio_from_phone'] }}
 
 ```
 
@@ -427,11 +432,11 @@ We will also need the python twilio module. Let's add this to the enable_reactor
 ```
 # /srv/salt/enable_reactors/init.sls
 
-...
-
 install_twilio:
   pip.installed:
     - name: twilio
+
+...
 
 ```
 ```
@@ -490,11 +495,6 @@ reactor:
   - salt/beacon/*/pcap_watch/:
     ...
     - /srv/salt/reactors/block_ip.sls
-```
-
-We can make sure it's enabled by re-running the state
-```
-salt \*master state.apply enable_reactors
 ```
 
 __Try it!__
