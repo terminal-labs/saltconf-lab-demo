@@ -156,7 +156,7 @@ Beacons are configured via the minion config. Let's write a salt state to do thi
 Notice the form of the configuration for the inotify beacon: 
 ```
 beacons:
-  inotfiy:
+  inotify:
     - files:
         /etc/apache2/apache2.conf:
           mask:
@@ -183,7 +183,7 @@ install_pip:
 
 base:
   '*':
-    - core:
+    - core
   '*master':
     - apache
     - ufw
@@ -248,8 +248,8 @@ Reactors can be configured via /etc/salt/master or in the /etc/salt/master.d dir
 # /srv/salt/enable_reactors/init.sls
 apply_reactor_config:
   file.managed:
-    - name: /etc/salt/master.d/reactors.conf
-    - source: salt://conf/master/reactors.conf
+    - name: /etc/salt/master.d/reactor.conf
+    - source: salt://conf/master/reactor.conf
 
 restart_master:
   cmd.run:
@@ -262,7 +262,7 @@ Be sure to download reactors.conf from [here](https://github.com/terminal-labs/s
 Take a look at the reactor config for the inotify event
 ```
 reactor:
-  - salt/beacon/*/inotify//etc/apache2/apache2.conf
+  - salt/beacon/*/inotify//etc/apache2/apache2.conf:
     - /srv/salt/reactors/call_manage_apache.sls
 ```
 
