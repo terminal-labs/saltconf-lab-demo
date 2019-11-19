@@ -257,7 +257,7 @@ restart_master:
     - bg: True
 ```
 
-Be sure to download reactors.conf from [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/master/reactors.conf) and store it in the location served by salt://conf/master/reactors.conf. This file contains the reactors used throughout this lab procedure.
+Be sure to download reactors.conf from [here](https://github.com/terminal-labs/saltconf-lab-demo/blob/master/lab_files/salt/conf/master/reactor.conf) and store it in the location served by salt://conf/master/reactor.conf. This file contains the reactors used throughout this lab procedure.
 
 Take a look at the reactor config for the inotify event
 ```
